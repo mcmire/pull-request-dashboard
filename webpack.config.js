@@ -1,30 +1,30 @@
 const path = require('path');
-// const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
   mode: 'development',
   devtool: 'cheap-module-source-map',
-  entry: './src/index.tsx',
+  entry: './src/index.js',
   resolve: {
-    extensions: ['.js', '.jsx', '.ts', '.tsx', '.css'],
+    extensions: ['.js', '.css'],
   },
   module: {
     rules: [
       {
-        test: /\.tsx?$/u,
-        loader: 'ts-loader',
+        test: /\.js$/u,
         exclude: /node_modules/u,
-        options: {
-          // disable type checker - we will use it in fork plugin
-          transpileOnly: true,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            cacheDirectory: true,
+          },
         },
       },
       {
         test: /\.css$/iu,
+        exclude: /node_modules/u,
         use: [
           // "style-loader",
           MiniCssExtractPlugin.loader,
@@ -42,16 +42,13 @@ module.exports = {
             },
           },
         ],
-        exclude: /node_modules/u,
       },
     ],
   },
   output: {
     filename: 'js/[name]-[contenthash].js',
     chunkFilename: 'js/[name]-[contenthash].chunk.js',
-    // hotUpdateChunkFilename: 'js/[id]-[contenthash].hot-update.js',
     path: path.resolve(__dirname, 'dist'),
-    // publicPath: "/",
     clean: true,
   },
   plugins: [
@@ -63,9 +60,7 @@ module.exports = {
       filename: 'css/[name]-[contenthash:8].css',
       chunkFilename: 'css/[id]-[contenthash:8].css',
     }),
-    new ForkTsCheckerWebpackPlugin(),
     new MiniCssExtractPlugin(),
-    // new webpack.HotModuleReplacementPlugin(),
   ],
   /*
   optimization: {
@@ -75,10 +70,8 @@ module.exports = {
   },
   */
   devServer: {
-    // contentBase: './dist',
     // TODO: Implement React Fast Refresh
     hot: true,
-    // injectClient: true,
     client: {
       overlay: true,
     },
