@@ -2,6 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const Dotenv = require('dotenv-webpack');
 
 module.exports = {
   mode: 'development',
@@ -75,6 +76,7 @@ module.exports = {
       chunkFilename: 'css/[id]-[contenthash:8].css',
     }),
     new MiniCssExtractPlugin(),
+    new Dotenv(),
   ],
   /*
   optimization: {

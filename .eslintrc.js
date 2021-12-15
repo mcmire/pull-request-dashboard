@@ -2,6 +2,11 @@ module.exports = {
   root: true,
   extends: ['@metamask/eslint-config'],
   ignorePatterns: ['node_modules/**', 'dist/**'],
+  rules: {
+    // Allow `x != null` checks
+    'no-eq-null': 'off',
+    'no-negated-condition': 'off',
+  },
   overrides: [
     {
       files: [

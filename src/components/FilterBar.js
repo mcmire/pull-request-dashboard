@@ -62,7 +62,7 @@ export default function FilterBar({ selectedFilters, setSelectedFilters }) {
   }
 
   return (
-    <div className="mb-4">
+    <div>
       {FILTER_NAMES.map((filterName) => {
         return (
           <FilterDropdown

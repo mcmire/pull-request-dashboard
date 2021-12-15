@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import FilterBar from './FilterBar';
 import PullRequestList from './PullRequestList';
+import SignOutButton from './SignOutButton';
 
 /**
- * The component for the home (main) screen.
+ * The page which appears when the user is signed in.
  *
- * @returns {JSX.Element} The JSX that renders this component.
+ * @returns {JSX.Element} The JSX used to render this component.
  */
-export default function Home() {
+export default function DashboardPage() {
   const [selectedFilters, setSelectedFilters] = useState({
     creator: ['me'],
     status: [],
@@ -39,12 +40,15 @@ export default function Home() {
   ]);
 
   return (
-    <div className="p-4">
-      <FilterBar
-        selectedFilters={selectedFilters}
-        setSelectedFilters={setSelectedFilters}
-      />
+    <>
+      <div className="flex justify-between mb-4">
+        <FilterBar
+          selectedFilters={selectedFilters}
+          setSelectedFilters={setSelectedFilters}
+        />
+        <SignOutButton />
+      </div>
       <PullRequestList pullRequests={pullRequests} />
-    </div>
+    </>
   );
 }
