@@ -8,7 +8,7 @@ module.exports = {
   devtool: 'cheap-module-source-map',
   entry: './src/index.js',
   resolve: {
-    extensions: ['.js', '.css'],
+    extensions: ['.js', '.jsx', '.css', '.jpg', '.png', '.gif', '.svg'],
   },
   module: {
     rules: [
@@ -26,7 +26,6 @@ module.exports = {
         test: /\.css$/iu,
         exclude: /node_modules/u,
         use: [
-          // "style-loader",
           MiniCssExtractPlugin.loader,
           {
             loader: 'css-loader',
@@ -42,6 +41,21 @@ module.exports = {
             },
           },
         ],
+      },
+      {
+        test: /\.(png|jpg|gif)$/iu,
+        type: 'asset/resource',
+      },
+      {
+        test: /\.svg$/iu,
+        loader: '@svgr/webpack',
+        options: {
+          // Adds types to generated JS
+          typescript: true,
+          // Removes width and height from the SVG so that dimensions can be
+          // specified using CSS
+          dimensions: false,
+        },
       },
     ],
   },
@@ -71,7 +85,7 @@ module.exports = {
   */
   devServer: {
     // TODO: Implement React Fast Refresh
-    hot: true,
+    // hot: 'only',
     client: {
       overlay: true,
     },

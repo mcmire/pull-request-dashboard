@@ -22,7 +22,12 @@ module.exports = {
       extends: ['plugin:react/recommended', 'plugin:react-hooks/recommended'],
       env: {
         browser: true,
+        node: true,
         es2017: true,
+      },
+      globals: {
+        event: 'off',
+        status: 'off',
       },
       parser: '@babel/eslint-parser',
       parserOptions: {
