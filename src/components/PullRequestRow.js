@@ -69,7 +69,9 @@ export default function PullRequest({ pullRequest }) {
       <Cell className="text-gray-500">
         <a
           href={pullRequest.url}
+          target="_blank"
           className="hover:text-blue-500 hover:underline"
+          rel="noreferrer"
         >
           #{pullRequest.number}
         </a>
@@ -77,7 +79,9 @@ export default function PullRequest({ pullRequest }) {
       <Cell className="font-semibold">
         <a
           href={pullRequest.url}
+          target="_blank"
           className="hover:text-blue-500 hover:underline"
+          rel="noreferrer"
         >
           {pullRequest.title}
         </a>
