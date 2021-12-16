@@ -33,6 +33,7 @@ export default function DashboardPage({ session, setSession }) {
         })
         .catch((error) => {
           toast.error(`Couldn't fetch pull requests: ${error}`);
+          console.error(error);
         });
     },
     [session],

@@ -45,30 +45,24 @@ export async function getPullRequests({ apiToken }) {
         repository(owner: "MetaMask", name: "metamask-extension") {
           pullRequests(
             states: [OPEN]
-            first: 20
+            first: 100
             orderBy: { field: CREATED_AT, direction: DESC }
           ) {
             nodes {
               author {
                 login
-              }
-              commits(first: 100) {
-                nodes {
-                  commit {
-                    authors(first: 5) {
-                      nodes {
-                        email
-                        name
-                        user {
-                          avatarUrl
-                          login
-                          organizations(first: 5) {
-                            nodes {
-                              login
-                            }
-                          }
-                        }
-                      }
+                avatarUrl
+                ... on User {
+                  organizations(first: 5) {
+                    nodes {
+                      login
+                    }
+                  }
+                }
+                ... on EnterpriseUserAccount {
+                  organizations(first: 5) {
+                    nodes {
+                      login
                     }
                   }
                 }
@@ -84,11 +78,6 @@ export async function getPullRequests({ apiToken }) {
               mergeable
               milestone {
                 title
-              }
-              participants(first: 100) {
-                nodes {
-                  login
-                }
               }
               projectCards(archivedStates: [NOT_ARCHIVED]) {
                 nodes {

@@ -1,4 +1,3 @@
-import { uniq } from 'lodash';
 import { getPullRequests } from './github';
 
 const FAKE_REQUEST = false;
@@ -79,32 +78,15 @@ async function fetchPullRequestsFromApi(apiToken) {
  * @returns {PullRequest} The pull request.
  */
 function buildPullRequest(pullRequestNode) {
-  const isCreatedByMetaMaskian = pullRequestNode.commits.nodes.some(
-    (commitNode) => {
-      return commitNode.commit.authors.nodes.some((authorNode) => {
-        return (
-          authorNode.user != null &&
-          authorNode.user.organizations.nodes.some((organizationNode) => {
-            return organizationNode.login === 'MetaMask';
-          })
-        );
-      });
-    },
-  );
-
-  const authorAvatarUrls = uniq(
-    pullRequestNode.commits.nodes.flatMap((commitNode) => {
-      return commitNode.commit.authors.nodes.map((authorNode) => {
-        if (authorNode.user != null) {
-          return authorNode.user.avatarUrl;
-        }
-        // TODO
-        return 'http://identicon.net/img/identicon.png';
-      });
-    }),
-  );
-
   const { number, title, url, isDraft } = pullRequestNode;
+  const isCreatedByMetaMaskian =
+    pullRequestNode.author?.organizations?.nodes.some((organizationNode) => {
+      return organizationNode.login === 'MetaMask';
+    }) ?? false;
+  const avatarUrl =
+    pullRequestNode.author?.avatarUrl ??
+    'http://identicon.net/img/identicon.png';
+  const authorAvatarUrls = [avatarUrl];
   const createdAt = new Date(Date.parse(pullRequestNode.publishedAt));
   const priorityLevel = 1;
 
