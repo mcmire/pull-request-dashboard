@@ -1,32 +1,33 @@
 const { graphql } = require('@octokit/graphql');
 
 /**
- * Ensures that the given GitHub API token is correct by making a request to the
- * API using it.
+ * Fetches information about the current viewer (user).
  *
- * @param {string} apiToken - The API token you want to test.
- * @returns {boolean} Whether the given API token is valid.
+ * @param {object} args - The arguments to this function.
+ * @param {string} args.apiToken - The token used to authenticate requests to
+ * the GitHub API.
+ * @returns {Promise<object>} The response.
  */
-export async function validateApiToken(apiToken) {
-  try {
-    await graphql(
-      `
-        query {
-          viewer {
-            login
+export function fetchViewer({ apiToken }) {
+  return graphql(
+    `
+      query {
+        viewer {
+          login
+          organizations(first: 5) {
+            nodes {
+              login
+            }
           }
         }
-      `,
-      {
-        headers: {
-          Authorization: `Token ${apiToken}`,
-        },
+      }
+    `,
+    {
+      headers: {
+        Authorization: `Token ${apiToken}`,
       },
-    );
-    return true;
-  } catch (error) {
-    return false;
-  }
+    },
+  );
 }
 
 /**
@@ -36,7 +37,7 @@ export async function validateApiToken(apiToken) {
  * @param {object} args - The arguments to this function.
  * @param {string} args.apiToken - The token used to authenticate requests to
  * the GitHub API.
- * @returns {Promise<GetPullRequestsResponse>} The response.
+ * @returns {Promise<object>} The response.
  */
 export async function getPullRequests({ apiToken }) {
   return graphql(
@@ -53,14 +54,14 @@ export async function getPullRequests({ apiToken }) {
                 login
                 avatarUrl
                 ... on User {
-                  organizations(first: 5) {
+                  organizations(first: 10) {
                     nodes {
                       login
                     }
                   }
                 }
                 ... on EnterpriseUserAccount {
-                  organizations(first: 5) {
+                  organizations(first: 10) {
                     nodes {
                       login
                     }
@@ -70,7 +71,7 @@ export async function getPullRequests({ apiToken }) {
               number
               title
               isDraft
-              labels(first: 100) {
+              labels(first: 10) {
                 nodes {
                   name
                 }
@@ -86,7 +87,7 @@ export async function getPullRequests({ apiToken }) {
                   }
                 }
               }
-              projectsNext(first: 100) {
+              projectsNext(first: 5) {
                 nodes {
                   title
                 }

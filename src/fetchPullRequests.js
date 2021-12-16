@@ -1,3 +1,4 @@
+import { isEqual } from 'lodash';
 import { getPullRequests } from './github';
 
 const FAKE_REQUEST = false;
@@ -5,15 +6,17 @@ const SHOULD_CACHE = true;
 const SHOULD_RESET_CACHE = false;
 const CACHE_KEY = 'fetchPullRequestsRequest';
 const CACHE_MAX_AGE = 60 * 60 * 1000; // 1 hour
+let lastTimeFetched;
 
 /**
  * Retrieves pull requests that has been previously persisted to localStorage.
  *
- * @param {string} apiToken - The token used to authenticate requests to the
- * GitHub API.
+ * @param {object} params - The data which specifies the request.
+ * @param {string} params.apiToken - The token used to authenticate requests to
+ * the GitHub API.
  * @returns {PullRequest[]} The cached pull requests (before extra filtering).
  */
-function fetchPullRequestsFromCache(apiToken) {
+function fetchPullRequestsFromCache(params) {
   if (SHOULD_RESET_CACHE) {
     localStorage.removeItem(CACHE_KEY);
   }
@@ -25,7 +28,7 @@ function fetchPullRequestsFromCache(apiToken) {
     const time = new Date(cachedRequest.time);
 
     if (
-      cachedRequest.params.apiToken === apiToken &&
+      isEqual(cachedRequest.params, params) &&
       new Date().getTime() - time <= CACHE_MAX_AGE
     ) {
       return cachedRequest.pullRequests.map((pullRequest) => {
@@ -44,13 +47,25 @@ function fetchPullRequestsFromCache(apiToken) {
  * Retrieves pull requests from the API and builds PullRequest objects from
  * them.
  *
- * @param {string} apiToken - The token used to authenticate requests to the
- * GitHub API.
+ * @param {object} params - The data which specifies the request.
+ * @param {string} params.apiToken - The token used to authenticate requests to
+ * the GitHub API.
  * @returns {Promise<PullRequest[]>} A set of pull requests (before extra
  * filtering).
  */
-async function fetchPullRequestsFromApi(apiToken) {
-  const response = await getPullRequests({ apiToken });
+async function fetchPullRequestsFromApi(params) {
+  const now = new Date().getTime();
+
+  if (now - lastTimeFetched <= 500) {
+    throw new Error(
+      'It looks like a duplicate request was made to the GitHub API. ' +
+        "Make sure you're not in an infinite loop, as this will cause rate limiting.",
+    );
+  }
+
+  lastTimeFetched = now;
+
+  const response = await getPullRequests(params);
 
   const pullRequests =
     response.repository.pullRequests.nodes.map(buildPullRequest);
@@ -59,7 +74,7 @@ async function fetchPullRequestsFromApi(apiToken) {
     localStorage.setItem(
       CACHE_KEY,
       JSON.stringify({
-        params: { apiToken },
+        params,
         time: new Date(),
         pullRequests,
       }),
@@ -78,17 +93,31 @@ async function fetchPullRequestsFromApi(apiToken) {
  * @returns {PullRequest} The pull request.
  */
 function buildPullRequest(pullRequestNode) {
-  const { number, title, url, isDraft } = pullRequestNode;
-  const isCreatedByMetaMaskian =
-    pullRequestNode.author?.organizations?.nodes.some((organizationNode) => {
-      return organizationNode.login === 'MetaMask';
-    }) ?? false;
-  const avatarUrl =
-    pullRequestNode.author?.avatarUrl ??
-    'http://identicon.net/img/identicon.png';
-  const authorAvatarUrls = [avatarUrl];
-  const createdAt = new Date(Date.parse(pullRequestNode.publishedAt));
-  const priorityLevel = 1;
+  const {
+    number,
+    title,
+    url,
+    isDraft,
+    author: pullRequestAuthor,
+  } = pullRequestNode;
+
+  let author;
+  if (pullRequestAuthor != null) {
+    const { login } = pullRequestAuthor;
+    const { avatarUrl } = pullRequestAuthor;
+    const teamLogins =
+      pullRequestAuthor.organizations?.nodes.map(
+        (organizationNode) => organizationNode.login,
+      ) ?? [];
+    // const isCreatedByMetaMaskian = authorTeamLogins.includes('MetaMask');
+    author = { login, avatarUrl, teamLogins };
+  } else {
+    author = {
+      login: null,
+      avatarUrl: 'http://identicon.net/img/identicon.png',
+      teamLogins: [],
+    };
+  }
 
   const statuses = [];
   if (pullRequestNode.reviewDecision === 'REVIEW_REQUIRED') {
@@ -97,9 +126,12 @@ function buildPullRequest(pullRequestNode) {
     statuses.push('isReadyToMerge');
   }
 
+  const createdAt = new Date(Date.parse(pullRequestNode.publishedAt));
+  const priorityLevel = 1;
+
   return {
-    isCreatedByMetaMaskian,
-    authorAvatarUrls,
+    // isCreatedByMetaMaskian,
+    author,
     number,
     title,
     createdAt,
@@ -114,23 +146,20 @@ function buildPullRequest(pullRequestNode) {
  * Fetches pull requests from GitHub using the specified filters and then maps
  * them to a form that can be passed to the PullRequestList.
  *
- * @param {object} args - The arguments to this function.
- * @param {string} args.apiToken - The token used to authenticate requests to
- * the GitHub API.
+ * @param {string} apiToken - The token used to authenticate requests to the
+ * GitHub API.
  * @returns {Promise<PullRequest>} The pull requests.
  */
-export default async function fetchPullRequests({ apiToken }) {
+export default async function fetchPullRequests(apiToken) {
   if (FAKE_REQUEST) {
     return new Promise((resolve) => {
       setTimeout(() => resolve([]), 3000);
     });
   }
 
-  const pullRequestsBeforeExtraFiltering =
-    (SHOULD_CACHE && fetchPullRequestsFromCache(apiToken)) ||
-    (await fetchPullRequestsFromApi(apiToken));
+  const pullRequests =
+    (SHOULD_CACHE && fetchPullRequestsFromCache({ apiToken })) ||
+    (await fetchPullRequestsFromApi({ apiToken }));
 
-  return pullRequestsBeforeExtraFiltering.filter((pullRequest) => {
-    return !pullRequest.isDraft;
-  });
+  return pullRequests;
 }

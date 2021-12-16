@@ -9,7 +9,7 @@ import SignInPage from './SignInPage';
  * @returns {JSX.Element} The JSX that renders this component.
  */
 export default function App() {
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState(undefined);
 
   useEffect(() => {
     const savedSession = localStorage.getItem('session');
@@ -20,10 +20,12 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (session == null) {
-      localStorage.removeItem('session');
-    } else {
-      localStorage.setItem('session', JSON.stringify(session));
+    if (session !== undefined) {
+      if (session === null) {
+        localStorage.removeItem('session');
+      } else {
+        localStorage.setItem('session', JSON.stringify(session));
+      }
     }
   }, [session]);
 

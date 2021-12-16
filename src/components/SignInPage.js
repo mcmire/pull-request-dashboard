@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { validateApiToken } from '../github';
+import { fetchViewer } from '../github';
 import Button from './Button';
 
 /**
@@ -22,11 +22,29 @@ export default function SignInPage({ setSession }) {
 
   const onButtonClick = async () => {
     setError(null);
-    const hasValidApiToken = await validateApiToken(apiToken);
-    if (hasValidApiToken) {
-      setSession({ apiToken });
-    } else {
-      setError('Please enter a valid token.');
+    try {
+      const { viewer } = await fetchViewer({ apiToken });
+      const session = {
+        apiToken,
+        user: {
+          login: viewer.login,
+          teamLogins: viewer.organizations.nodes.map(
+            (organizationNode) => organizationNode.login,
+          ),
+        },
+      };
+      if (session.user.teamLogins.includes('MetaMask')) {
+        // TODO: This causes a "Can't perform a React state update on an
+        // unmounted component" error if something breaks after sign-in
+        setSession(session);
+      } else {
+        setError('This tool is only supported by MetaMaskians at the moment!');
+      }
+    } catch (authenticationError) {
+      setError(
+        "Hmm, we had problems using that token. Please double check that it's valid.",
+      );
+      console.error(authenticationError);
     }
   };
 
@@ -38,6 +56,8 @@ export default function SignInPage({ setSession }) {
           <a
             className="text-blue-500 hover:underline"
             href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token"
+            target="_blank"
+            rel="noreferrer"
           >
             GitHub personal access token
           </a>

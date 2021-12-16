@@ -1,7 +1,7 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { toast } from 'react-hot-toast';
 import fetchPullRequests from '../fetchPullRequests';
+import filterPullRequests from '../filterPullRequests';
 import FilterBar from './FilterBar';
 import PullRequestList from './PullRequestList';
 import SignOutButton from './SignOutButton';
@@ -17,41 +17,77 @@ import SignOutButton from './SignOutButton';
  * @returns {JSX.Element} The JSX used to render this component.
  */
 export default function DashboardPage({ session, setSession }) {
-  const [pullRequests, setPullRequests] = useState([]);
-  const [isUpdatingPullRequests, setIsUpdatingPullRequests] = useState(false);
-  const [hasInitiallyLoadedPullRequests, setHasInitiallyLoadedPullRequests] =
+  const [pullRequestsRequestStatus, setPullRequestsRequestStatus] = useState({
+    type: 'pending',
+    data: {
+      unfilteredPullRequests: [],
+      filteredPullRequests: [],
+    },
+    errorMessage: null,
+  });
+  const [hasLoadedPullRequestsOnce, setHasLoadedPullRequestsOnce] =
     useState(false);
 
-  const updatePullRequests = useCallback(
-    async ({ filters }) => {
-      setIsUpdatingPullRequests(true);
-      fetchPullRequests({ apiToken: session.apiToken, ...filters })
-        .then((fetchedPullRequests) => {
-          setPullRequests(fetchedPullRequests);
-          setHasInitiallyLoadedPullRequests(true);
-          setIsUpdatingPullRequests(false);
-        })
-        .catch((error) => {
-          toast.error(`Couldn't fetch pull requests: ${error}`);
-          console.error(error);
-        });
+  // The useCallback here is necessary to prevent recursive state updates
+  const updateFilters = useCallback(
+    (filters) => {
+      setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
+        ...previousPullRequestsRequestStatus,
+        type: 'loaded',
+        data: {
+          ...previousPullRequestsRequestStatus.data,
+          filteredPullRequests: filterPullRequests(
+            previousPullRequestsRequestStatus.data.unfilteredPullRequests,
+            filters,
+            session,
+          ),
+        },
+      }));
     },
     [session],
   );
+
+  useEffect(() => {
+    setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
+      ...previousPullRequestsRequestStatus,
+      type: 'loading',
+    }));
+
+    fetchPullRequests(session.apiToken)
+      .then((unfilteredPullRequests) => {
+        setHasLoadedPullRequestsOnce(true);
+        setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
+          ...previousPullRequestsRequestStatus,
+          type: 'loaded',
+          data: {
+            ...previousPullRequestsRequestStatus.data,
+            unfilteredPullRequests,
+          },
+        }));
+      })
+      .catch((error) => {
+        setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
+          ...previousPullRequestsRequestStatus,
+          type: 'error',
+          errorMessage: `Couldn't fetch pull requests: ${error}`,
+        }));
+        console.error(error);
+      });
+  }, [session]);
 
   return (
     <>
       <div className="flex justify-between mb-4">
         <FilterBar
-          updatePullRequests={updatePullRequests}
-          isUpdatingPullRequests={isUpdatingPullRequests}
-          hasInitiallyLoadedPullRequests={hasInitiallyLoadedPullRequests}
+          pullRequestsRequestStatus={pullRequestsRequestStatus}
+          hasLoadedPullRequestsOnce={hasLoadedPullRequestsOnce}
+          updateFilters={updateFilters}
         />
         <SignOutButton setSession={setSession} />
       </div>
       <PullRequestList
-        pullRequests={pullRequests}
-        hasInitiallyLoadedPullRequests={hasInitiallyLoadedPullRequests}
+        pullRequestsRequestStatus={pullRequestsRequestStatus}
+        hasLoadedPullRequestsOnce={hasLoadedPullRequestsOnce}
       />
     </>
   );

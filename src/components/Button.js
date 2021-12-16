@@ -22,18 +22,24 @@ export default function Button({
   activeLabel,
   onClick: givenOnClick,
   className = '',
-  disabled: givenDisabled = false,
+  disabled: givenIsDisabled = undefined,
   isActive: givenIsActive = undefined,
 }) {
   const isStillMounted = useRef(true);
-  const [isActive, setIsActive] = useState(givenIsActive ?? false);
-  const isDisabled = givenDisabled || isActive;
+  const [isActive, setIsActive] = useState(false);
+  const isDisabled = givenIsDisabled !== undefined ? givenIsDisabled : isActive;
 
   useEffect(() => {
     return () => {
       isStillMounted.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (givenIsActive !== undefined) {
+      setIsActive(givenIsActive);
+    }
+  }, [givenIsActive]);
 
   const onClick = useCallback(
     async (event) => {

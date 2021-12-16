@@ -6,6 +6,7 @@ import MetamaskIcon from '../images/metamask-fox.svg';
 import DotIcon from '../images/icons/octicons/dot-16.svg';
 import DotFillIcon from '../images/icons/octicons/dot-fill-16.svg';
 import { times } from '../util';
+import { PullRequestType } from './types';
 
 const MAX_PRIORITY_LEVEL = 5;
 const STATUSES_BY_NAME = {
@@ -57,13 +58,10 @@ export default function PullRequest({ pullRequest }) {
       </Cell>
       <Cell>
         <div className="flex">
-          {pullRequest.authorAvatarUrls.map((url, i) => (
-            <img
-              key={i}
-              src={url}
-              className="rounded-full w-[1.4em] border border-white mr-[-0.5em]"
-            />
-          ))}
+          <img
+            src={pullRequest.author.avatarUrl}
+            className="rounded-full w-[1.4em] border border-white mr-[-0.5em]"
+          />
         </div>
       </Cell>
       <Cell className="text-gray-500">
@@ -123,14 +121,5 @@ export default function PullRequest({ pullRequest }) {
 }
 
 PullRequest.propTypes = {
-  pullRequest: PropTypes.shape({
-    isCreatedByMetaMaskian: PropTypes.bool.isRequired,
-    authorAvatarUrls: PropTypes.arrayOf(PropTypes.string).isRequired,
-    number: PropTypes.number.isRequired,
-    title: PropTypes.string.isRequired,
-    createdAt: PropTypes.instanceOf(Date).isRequired,
-    priorityLevel: PropTypes.number.isRequired,
-    statuses: PropTypes.arrayOf(PropTypes.string).isRequired,
-    url: PropTypes.string.isRequired,
-  }),
+  pullRequest: PullRequestType,
 };

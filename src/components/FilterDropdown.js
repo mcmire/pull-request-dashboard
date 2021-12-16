@@ -3,26 +3,27 @@ import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { FILTER_NAMES } from '../constants';
 import TriangleDownIcon from '../images/icons/octicons/triangle-down-16.svg';
+import CheckIcon from '../images/icons/octicons/check-16.svg';
+import DotFillIcon from '../images/icons/octicons/dot-fill-16.svg';
 import { isDescendant } from '../util';
 
 /**
  * FilterDropdown.
  *
- * @param {*} props - The props.
- * @param {*} props.filterName - The filterName.
- * @param {*} props.selectedOptions - The selectedOptions.
- * @param {*} props.filter - The filter.
- * @param {*} props.toggleFilterOption - The toggleFilterOption.
+ * @param {object} props - The props.
+ * @param {object} props.filter - Existing information about the filter.
+ * @param {string | string[]} props.selection - The selected value or values for
+ * the filter.
+ * @param {Function} props.updateSelection - The function to call when the
+ * selection changes.
  * @returns {JSX.Element} The JSX that renders this component.
  */
-export default function FilterDropdown({
-  filterName,
-  selectedOptions,
-  filter,
-  toggleFilterOption,
-}) {
+export default function FilterDropdown({ filter, selection, updateSelection }) {
+  const selectedValues =
+    typeof selection === 'string' ? [selection] : selection;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const ref = useRef(null);
+
   const closeMenu = useCallback(
     (event) => {
       if (isMenuOpen && !isDescendant(event.target, ref.current)) {
@@ -31,6 +32,19 @@ export default function FilterDropdown({
     },
     [isMenuOpen, ref],
   );
+
+  const toggleSelectionOf = (value) => {
+    if (filter.isEachOptionExclusive) {
+      updateSelection(filter.name, value);
+    } else if (selection.includes(value)) {
+      updateSelection(
+        filter.name,
+        selection.filter((v) => v !== value),
+      );
+    } else {
+      updateSelection(filter.name, [...selection, value]);
+    }
+  };
 
   useEffect(() => {
     document.body.addEventListener('click', closeMenu);
@@ -75,8 +89,8 @@ export default function FilterDropdown({
       onClick={onClick}
     >
       <span className="mr-1">
-        {selectedOptions.length > 0
-          ? selectedOptions
+        {selectedValues.length > 0
+          ? selectedValues
               .map(
                 (optionValue) =>
                   filter.validOptions.find(
@@ -107,16 +121,32 @@ export default function FilterDropdown({
       >
         <ul className="w-full">
           {filter.validOptions.map(({ label, value }) => {
+            let selectionIndicator;
+            if (selectedValues.includes(value)) {
+              if (filter.isEachOptionExclusive) {
+                selectionIndicator = (
+                  <DotFillIcon className="h-[1em] mr-2 flex-none" />
+                );
+              } else {
+                selectionIndicator = (
+                  <CheckIcon className="h-[1em] mr-2 flex-none" />
+                );
+              }
+            } else {
+              selectionIndicator = (
+                <div className="w-[1em] h-[1em] mr-2 block" />
+              );
+            }
+
             return (
               <li key={label} className="text-left">
                 <a
                   href="#"
-                  onClick={() => {
-                    toggleFilterOption(filterName, label, value);
-                  }}
-                  className="block px-4 py-2 hover:bg-gray-100"
+                  onClick={() => toggleSelectionOf(value)}
+                  className="block px-4 py-2 hover:bg-gray-100 flex items-center"
                 >
-                  {label}
+                  {selectionIndicator}
+                  <span>{label}</span>
                 </a>
               </li>
             );
@@ -128,9 +158,8 @@ export default function FilterDropdown({
 }
 
 FilterDropdown.propTypes = {
-  filterName: PropTypes.oneOf(FILTER_NAMES),
-  selectedOptions: PropTypes.arrayOf(PropTypes.string).isRequired,
   filter: PropTypes.shape({
+    name: PropTypes.oneOf(FILTER_NAMES),
     validOptions: PropTypes.arrayOf(
       PropTypes.shape({
         label: PropTypes.string.isRequired,
@@ -142,6 +171,11 @@ FilterDropdown.propTypes = {
       value: PropTypes.string,
     }).isRequired,
     className: PropTypes.string.isRequired,
+    isEachOptionExclusive: PropTypes.bool.isRequired,
   }).isRequired,
-  toggleFilterOption: PropTypes.func.isRequired,
+  selection: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.string),
+    PropTypes.string,
+  ]).isRequired,
+  updateSelection: PropTypes.func.isRequired,
 };

@@ -2,31 +2,47 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import TriangleDownIcon from '../images/icons/octicons/triangle-down-16.svg';
 import PullRequestRow from './PullRequestRow';
+import { PullRequestType } from './types';
 
 /**
  * The component for the pull request list.
  *
  * @param {object} props - The props for this component.
- * @param {PullRequest[]} props.pullRequests - The pull requests to render.
- * @param {boolean} props.hasInitiallyLoadedPullRequests - Whether or not the
- * first request to fetch PRs has been made.
+ * @param {PullRequestsRequestStatus} props.pullRequestsRequestStatus - An
+ * object that contains information about the request made to fetch pull
+ * requests.
+ * @param {boolean} props.hasLoadedPullRequestsOnce - Whether or not the
+ * first request to fetch pull requests has been made.
  * @returns {JSX.Element} The JSX that renders this component.
  */
 export default function PullRequestList({
-  pullRequests,
-  hasInitiallyLoadedPullRequests,
+  pullRequestsRequestStatus,
+  hasLoadedPullRequestsOnce,
 }) {
   const renderTbody = () => {
-    if (hasInitiallyLoadedPullRequests) {
-      if (pullRequests.length > 0) {
-        return pullRequests.map((pullRequest, i) => (
-          <PullRequestRow key={i} pullRequest={pullRequest} />
-        ));
+    if (
+      pullRequestsRequestStatus.type === 'loaded' &&
+      hasLoadedPullRequestsOnce
+    ) {
+      if (pullRequestsRequestStatus.data.filteredPullRequests.length > 0) {
+        return pullRequestsRequestStatus.data.filteredPullRequests.map(
+          (pullRequest, i) => (
+            <PullRequestRow key={i} pullRequest={pullRequest} />
+          ),
+        );
       }
       return (
         <tr>
           <td colSpan={7} className="pt-4 pb-4 text-sm">
-            There aren't any pull requests to review. Congrats! 🎉
+            No pull requests matched the filters you selected.
+          </td>
+        </tr>
+      );
+    } else if (pullRequestsRequestStatus.type === 'error') {
+      return (
+        <tr>
+          <td colSpan={7} className="pt-4 pb-4 text-sm text-red-500">
+            {pullRequestsRequestStatus.errorMessage}
           </td>
         </tr>
       );
@@ -68,17 +84,12 @@ export default function PullRequestList({
 }
 
 PullRequestList.propTypes = {
-  pullRequests: PropTypes.arrayOf(
-    PropTypes.shape({
-      isCreatedByMetaMaskian: PropTypes.bool.isRequired,
-      authorAvatarUrls: PropTypes.arrayOf(PropTypes.string).isRequired,
-      number: PropTypes.number.isRequired,
-      title: PropTypes.string.isRequired,
-      createdAt: PropTypes.instanceOf(Date).isRequired,
-      priorityLevel: PropTypes.number.isRequired,
-      statuses: PropTypes.arrayOf(PropTypes.string).isRequired,
-      url: PropTypes.string.isRequired,
-    }),
-  ),
-  hasInitiallyLoadedPullRequests: PropTypes.bool.isRequired,
+  pullRequestsRequestStatus: PropTypes.shape({
+    type: PropTypes.string.isRequired,
+    data: PropTypes.shape({
+      filteredPullRequests: PropTypes.arrayOf(PullRequestType).isRequired,
+    }).isRequired,
+    errorMessage: PropTypes.string,
+  }),
+  hasLoadedPullRequestsOnce: PropTypes.bool.isRequired,
 };
