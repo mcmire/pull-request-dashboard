@@ -1,5 +1,6 @@
 import { isEqual } from 'lodash';
 import { getPullRequests } from './github';
+import { HAS_REQUIRED_CHANGES, IS_READY_TO_MERGE } from './constants';
 
 const FAKE_REQUEST = false;
 const SHOULD_CACHE = true;
@@ -109,7 +110,6 @@ function buildPullRequest(pullRequestNode) {
       pullRequestAuthor.organizations?.nodes.map(
         (organizationNode) => organizationNode.login,
       ) ?? [];
-    // const isCreatedByMetaMaskian = authorTeamLogins.includes('MetaMask');
     author = { login, avatarUrl, teamLogins };
   } else {
     author = {
@@ -121,16 +121,15 @@ function buildPullRequest(pullRequestNode) {
 
   const statuses = [];
   if (pullRequestNode.reviewDecision === 'REVIEW_REQUIRED') {
-    statuses.push('hasRequiredChanges');
+    statuses.push(HAS_REQUIRED_CHANGES);
   } else {
-    statuses.push('isReadyToMerge');
+    statuses.push(IS_READY_TO_MERGE);
   }
 
   const createdAt = new Date(Date.parse(pullRequestNode.publishedAt));
   const priorityLevel = 1;
 
   return {
-    // isCreatedByMetaMaskian,
     author,
     number,
     title,

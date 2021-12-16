@@ -3,15 +3,19 @@ import PropTypes from 'prop-types';
 import { isEqual } from 'lodash';
 import {
   AUTHOR,
-  STATUSES,
+  CONTRIBUTORS,
   FILTER_NAMES,
+  HAS_MERGE_CONFLICTS,
+  HAS_MISSING_TESTS,
+  HAS_REQUIRED_CHANGES,
+  IS_BLOCKED,
+  IS_READY_TO_MERGE,
   ME,
   MY_TEAM,
-  CONTRIBUTORS,
+  STATUSES,
 } from '../constants';
 import FilterDropdown from './FilterDropdown';
 import Button from './Button';
-import { PullRequestType } from './types';
 
 const FILTERS_BY_NAME = {
   [AUTHOR]: {
@@ -28,11 +32,11 @@ const FILTERS_BY_NAME = {
   [STATUSES]: {
     name: STATUSES,
     validOptions: [
-      { label: 'Has merge conflicts', value: 'hasMergeConflicts' },
-      { label: 'Has required changes', value: 'hasRequiredChanges' },
-      { label: 'Missing tests', value: 'hasMissingTests' },
-      { label: 'Blocked by dependent task', value: 'isBlocked' },
-      { label: 'Ready to merge', value: 'isReadyToMerge' },
+      { label: 'Has merge conflicts', value: HAS_MERGE_CONFLICTS },
+      { label: 'Has required changes', value: HAS_REQUIRED_CHANGES },
+      { label: 'Missing tests', value: HAS_MISSING_TESTS },
+      { label: 'Blocked by dependent task', value: IS_BLOCKED },
+      { label: 'Ready to merge', value: IS_READY_TO_MERGE },
     ],
     defaultOption: {
       label: 'Any status',
@@ -80,7 +84,7 @@ export default function FilterBar({
 
   useEffect(() => {
     // TODO: Why this should wait for DashboardPage to load the pull requests?
-    // Seems like that's the responsibility of DashboardPage
+    // Seems like that's the responsibility of DashboardPage.
     if (pullRequestsRequestStatus.type === 'loaded') {
       updateFilters(selectedFilters);
     }

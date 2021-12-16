@@ -1,8 +1,6 @@
 import PropTypes from 'prop-types';
 
 export const PullRequestType = PropTypes.shape({
-  // isCreatedByMetaMaskian: PropTypes.bool.isRequired,
-  // authorAvatarUrls: PropTypes.arrayOf(PropTypes.string).isRequired,
   author: PropTypes.shape({
     login: PropTypes.string,
     avatarUrl: PropTypes.string.isRequired,
