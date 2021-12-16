@@ -61,7 +61,7 @@ export default function PullRequest({ pullRequest }) {
             <img
               key={i}
               src={url}
-              className="rounded-full h-[1.25em] border border-white mr-[-0.5em]"
+              className="rounded-full w-[1.4em] border border-white mr-[-0.5em]"
             />
           ))}
         </div>
