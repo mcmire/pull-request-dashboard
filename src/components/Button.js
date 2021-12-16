@@ -13,6 +13,7 @@ import classnames from 'classnames';
  * @param {Function} props.onClick - The function to call when the button is
  * clicked.
  * @param {string} [props.className] - The CSS classes to apply to the button.
+ * @param {boolean} [props.disabled] - Whether the button should be disabled.
  * @returns {JSX.Element} The JSX used to render this component.
  */
 export default function Button({
@@ -20,9 +21,11 @@ export default function Button({
   activeLabel,
   onClick: givenOnClick,
   className = '',
+  disabled: givenDisabled = false,
 }) {
   const isStillMounted = useRef(true);
   const [isActive, setIsActive] = useState(false);
+  const isDisabled = givenDisabled || isActive;
 
   useEffect(() => {
     return () => {
@@ -57,13 +60,13 @@ export default function Button({
         className,
         {
           'bg-gray-100 text-gray-400 hover:bg-gray-100 cursor-not-allowed':
-            isActive,
+            isDisabled,
           'bg-blue-500 hover:bg-blue-600 active:drop-shadow-none active:shadow-inner-darker active:bg-blue-700':
-            !isActive,
+            !isDisabled,
         },
       )}
       onClick={onClick}
-      disabled={isActive}
+      disabled={isDisabled}
     >
       {isActive ? activeLabel : inactiveLabel}
     </button>
@@ -75,4 +78,5 @@ Button.propTypes = {
   activeLabel: PropTypes.node.isRequired,
   onClick: PropTypes.func.isRequired,
   className: PropTypes.string,
+  disabled: PropTypes.bool,
 };

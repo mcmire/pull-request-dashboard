@@ -9,12 +9,12 @@ import TriangleDownIcon from '../images/icons/octicons/triangle-down-16.svg';
 import { times } from '../util';
 
 const MAX_PRIORITY_LEVEL = 5;
-const AUTHOR_AVATORS_BY_USERNAME = {
-  NiranjanaBinoy: require('../images/NiranjanaBinoy.jpg'),
-  jpuri: require('../images/jpuri.jpg'),
-  georgewrmarshall: require('../images/georgewrmarshall.png'),
-  ImGelu: require('../images/ImGelu.jpg'),
-};
+// const AUTHOR_AVATORS_BY_USERNAME = {
+// NiranjanaBinoy: require('../images/NiranjanaBinoy.jpg'),
+// jpuri: require('../images/jpuri.jpg'),
+// georgewrmarshall: require('../images/georgewrmarshall.png'),
+// ImGelu: require('../images/ImGelu.jpg'),
+// };
 const STATUSES_BY_NAME = {
   hasMergeConflicts: 'Has merge conflicts',
   hasRequiredChanges: 'Has required changes',
@@ -40,10 +40,10 @@ function PullRequest({ pullRequest }) {
       </td>
       <td className="pr-2 py-2">
         <div className="flex">
-          {pullRequest.authors.map((author, i) => (
+          {pullRequest.authorAvatarUrls.map((url, i) => (
             <img
               key={i}
-              src={AUTHOR_AVATORS_BY_USERNAME[author]}
+              src={url}
               className="rounded-full h-[1.25em] border border-white mr-[-0.5em]"
             />
           ))}
@@ -98,8 +98,8 @@ function PullRequest({ pullRequest }) {
 PullRequest.propTypes = {
   pullRequest: PropTypes.shape({
     isCreatedByMetaMaskian: PropTypes.bool.isRequired,
-    authors: PropTypes.arrayOf(PropTypes.string).isRequired,
-    number: PropTypes.string.isRequired,
+    authorAvatarUrls: PropTypes.arrayOf(PropTypes.string).isRequired,
+    number: PropTypes.number.isRequired,
     title: PropTypes.string.isRequired,
     createdAt: PropTypes.instanceOf(Date).isRequired,
     priorityLevel: PropTypes.number.isRequired,
@@ -150,8 +150,8 @@ PullRequestList.propTypes = {
   pullRequests: PropTypes.arrayOf(
     PropTypes.shape({
       isCreatedByMetaMaskian: PropTypes.bool.isRequired,
-      authors: PropTypes.arrayOf(PropTypes.string).isRequired,
-      number: PropTypes.string.isRequired,
+      authorAvatarUrls: PropTypes.arrayOf(PropTypes.string).isRequired,
+      number: PropTypes.number.isRequired,
       title: PropTypes.string.isRequired,
       createdAt: PropTypes.instanceOf(Date).isRequired,
       priorityLevel: PropTypes.number.isRequired,

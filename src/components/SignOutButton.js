@@ -1,29 +1,23 @@
 import React from 'react';
-import { toast } from 'react-hot-toast';
-import supabase from '../supabase';
+import PropTypes from 'prop-types';
 import Button from './Button';
 
 /**
  * The button the user can use to sign out.
  *
+ * @param {object} props - The props to this component.
+ * @param {Function} props.setSession - A function used to update the current
+ * auth session.
  * @returns {JSX.Element} The JSX used to render this component.
  */
-export default function SignOutButton() {
+export default function SignOutButton({ setSession }) {
   const onClick = async () => {
     // Signing out takes no time at all, so fake a delay
     await new Promise((resolve) => {
       setTimeout(resolve, 1000);
     });
 
-    const result = await supabase.auth.signOut();
-
-    if (result.error != null) {
-      toast.error('Could not sign out via GitHub. See console for details.');
-      console.error(result.error);
-      return { isActive: false };
-    }
-
-    return { isActive: true };
+    setSession(null);
   };
 
   return (
@@ -35,3 +29,7 @@ export default function SignOutButton() {
     />
   );
 }
+
+SignOutButton.propTypes = {
+  setSession: PropTypes.func.isRequired,
+};
