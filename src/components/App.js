@@ -20,7 +20,9 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (session != null) {
+    if (session == null) {
+      localStorage.removeItem('session');
+    } else {
       localStorage.setItem('session', JSON.stringify(session));
     }
   }, [session]);
