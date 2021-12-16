@@ -52,6 +52,7 @@ module.exports = {
       },
       rules: {
         'import/no-unassigned-import': 'off',
+        'react/no-unescaped-entities': 'off',
         'react/no-unused-prop-types': 'error',
         'react/no-unused-state': 'error',
         'react/jsx-boolean-value': 'error',
