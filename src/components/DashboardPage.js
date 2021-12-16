@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import PropTypes from 'prop-types';
+import { toast } from 'react-hot-toast';
 import fetchPullRequests from '../fetchPullRequests';
 import FilterBar from './FilterBar';
 import PullRequestList from './PullRequestList';
@@ -24,13 +25,15 @@ export default function DashboardPage({ session, setSession }) {
   const updatePullRequests = useCallback(
     async ({ filters }) => {
       setIsUpdatingPullRequests(true);
-      fetchPullRequests({ apiToken: session.apiToken, ...filters }).then(
-        (fetchedPullRequests) => {
+      fetchPullRequests({ apiToken: session.apiToken, ...filters })
+        .then((fetchedPullRequests) => {
           setPullRequests(fetchedPullRequests);
           setHasInitiallyLoadedPullRequests(true);
           setIsUpdatingPullRequests(false);
-        },
-      );
+        })
+        .catch((error) => {
+          toast.error(`Couldn't fetch pull requests: ${error}`);
+        });
     },
     [session],
   );

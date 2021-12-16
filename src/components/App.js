@@ -32,7 +32,14 @@ export default function App() {
       ) : (
         <SignInPage setSession={setSession} />
       )}
-      <Toaster />
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          error: {
+            duration: 10000,
+          },
+        }}
+      />
     </>
   );
 }
