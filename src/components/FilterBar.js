@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { FILTER_NAMES } from '../constants';
 import FilterDropdown from './FilterDropdown';
+import Button from './Button';
 
 const FILTERS_BY_NAME = {
   creator: {
@@ -29,24 +30,38 @@ const FILTERS_BY_NAME = {
   },
 };
 
+const initialSelectedFilters = {
+  creator: ['me'],
+  status: [],
+};
+
 /**
  * A component holding dropdowns the user can change in order to see a subset of
  * PRs.
  *
- * @param {*} props - The props to this component.
- * @param {*} props.selectedFilters - The filters that the user has selected.
- * @param {*} props.setSelectedFilters - A function to re-filter the list of PRs.
+ * @param {object} props - The props to this component.
+ * @param {Function} props.updatePullRequests - A function to re-filter the list
+ * of PRs.
+ * @param {boolean} props.isUpdatingPullRequests - Whether or not an update to
+ * the list of PRs is incoming.
+ * @param {boolean} props.hasInitiallyLoadedPullRequests - Whether or not the
+ * first request to fetch PRs has been made.
  * @returns {JSX.Element} The JSX that renders this component.
  */
-export default function FilterBar({ selectedFilters, setSelectedFilters }) {
-  /**
-   * Toggles the filter option.
-   *
-   * @param {*} filterName - The filterName.
-   * @param {*} optionName - The optionName.
-   * @param {*} optionValue - The optionValue.
-   */
-  function toggleFilterOption(filterName, optionName, optionValue) {
+export default function FilterBar({
+  updatePullRequests,
+  isUpdatingPullRequests,
+  hasInitiallyLoadedPullRequests,
+}) {
+  const [selectedFilters, setSelectedFilters] = useState(
+    initialSelectedFilters,
+  );
+
+  useEffect(() => {
+    updatePullRequests({ filters: initialSelectedFilters });
+  }, [updatePullRequests]);
+
+  const toggleFilterOption = (filterName, optionName, optionValue) => {
     const selectedOptions = new Set(selectedFilters[optionName]);
 
     if (selectedOptions.has(optionValue)) {
@@ -59,10 +74,14 @@ export default function FilterBar({ selectedFilters, setSelectedFilters }) {
       ...selectedFilters,
       [filterName]: selectedOptions,
     });
-  }
+  };
+
+  const onButtonClick = () => {
+    return updatePullRequests({ filters: selectedFilters });
+  };
 
   return (
-    <div>
+    <div className="flex">
       {FILTER_NAMES.map((filterName) => {
         return (
           <FilterDropdown
@@ -74,14 +93,19 @@ export default function FilterBar({ selectedFilters, setSelectedFilters }) {
           />
         );
       })}
+      <Button
+        className="text-sm"
+        onClick={onButtonClick}
+        inactiveLabel="Filter"
+        activeLabel="Loading..."
+        isActive={hasInitiallyLoadedPullRequests && !isUpdatingPullRequests}
+      />
     </div>
   );
 }
 
 FilterBar.propTypes = {
-  selectedFilters: PropTypes.shape({
-    creator: PropTypes.array.isRequired,
-    status: PropTypes.array.isRequired,
-  }).isRequired,
-  setSelectedFilters: PropTypes.func.isRequired,
+  updatePullRequests: PropTypes.func.isRequired,
+  isUpdatingPullRequests: PropTypes.bool.isRequired,
+  hasInitiallyLoadedPullRequests: PropTypes.bool.isRequired,
 };

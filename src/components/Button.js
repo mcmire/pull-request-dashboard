@@ -14,6 +14,7 @@ import classnames from 'classnames';
  * clicked.
  * @param {string} [props.className] - The CSS classes to apply to the button.
  * @param {boolean} [props.disabled] - Whether the button should be disabled.
+ * @param {boolean} [props.isActive] - Whether the button is in an active state.
  * @returns {JSX.Element} The JSX used to render this component.
  */
 export default function Button({
@@ -22,9 +23,10 @@ export default function Button({
   onClick: givenOnClick,
   className = '',
   disabled: givenDisabled = false,
+  isActive: givenIsActive = undefined,
 }) {
   const isStillMounted = useRef(true);
-  const [isActive, setIsActive] = useState(false);
+  const [isActive, setIsActive] = useState(givenIsActive ?? false);
   const isDisabled = givenDisabled || isActive;
 
   useEffect(() => {
@@ -36,17 +38,23 @@ export default function Button({
   const onClick = useCallback(
     async (event) => {
       event.preventDefault();
-      setIsActive(true);
+      if (givenIsActive === undefined) {
+        setIsActive(true);
+      }
       let result;
       try {
         result = await givenOnClick();
       } finally {
-        if (isStillMounted.current && (result == null || !result.isActive)) {
+        if (
+          isStillMounted.current &&
+          (result == null || !result.isActive) &&
+          givenIsActive === undefined
+        ) {
           setIsActive(false);
         }
       }
     },
-    [setIsActive, givenOnClick],
+    [setIsActive, givenOnClick, givenIsActive],
   );
 
   return (
@@ -79,4 +87,5 @@ Button.propTypes = {
   onClick: PropTypes.func.isRequired,
   className: PropTypes.string,
   disabled: PropTypes.bool,
+  isActive: PropTypes.bool,
 };

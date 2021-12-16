@@ -9,12 +9,6 @@ import TriangleDownIcon from '../images/icons/octicons/triangle-down-16.svg';
 import { times } from '../util';
 
 const MAX_PRIORITY_LEVEL = 5;
-// const AUTHOR_AVATORS_BY_USERNAME = {
-// NiranjanaBinoy: require('../images/NiranjanaBinoy.jpg'),
-// jpuri: require('../images/jpuri.jpg'),
-// georgewrmarshall: require('../images/georgewrmarshall.png'),
-// ImGelu: require('../images/ImGelu.jpg'),
-// };
 const STATUSES_BY_NAME = {
   hasMergeConflicts: 'Has merge conflicts',
   hasRequiredChanges: 'Has required changes',
@@ -50,12 +44,18 @@ function PullRequest({ pullRequest }) {
         </div>
       </td>
       <td className="pr-2 py-2 text-gray-500">
-        <a href="#" className="hover:text-blue-500 hover:underline">
+        <a
+          href={pullRequest.url}
+          className="hover:text-blue-500 hover:underline"
+        >
           #{pullRequest.number}
         </a>
       </td>
       <td className="pr-2 py-2 font-semibold">
-        <a href="#" className="hover:text-blue-500 hover:underline">
+        <a
+          href={pullRequest.url}
+          className="hover:text-blue-500 hover:underline"
+        >
           {pullRequest.title}
         </a>
       </td>
@@ -104,6 +104,7 @@ PullRequest.propTypes = {
     createdAt: PropTypes.instanceOf(Date).isRequired,
     priorityLevel: PropTypes.number.isRequired,
     statuses: PropTypes.arrayOf(PropTypes.string).isRequired,
+    url: PropTypes.string.isRequired,
   }),
 };
 
@@ -112,9 +113,14 @@ PullRequest.propTypes = {
  *
  * @param {object} props - The props for this component.
  * @param {PullRequest[]} props.pullRequests - The pull requests to render.
+ * @param {boolean} props.hasInitiallyLoadedPullRequests - Whether or not the
+ * first request to fetch PRs has been made.
  * @returns {JSX.Element} The JSX that renders this component.
  */
-export default function PullRequestList({ pullRequests }) {
+export default function PullRequestList({
+  pullRequests,
+  hasInitiallyLoadedPullRequests,
+}) {
   return (
     <table className="w-full">
       <thead>
@@ -138,9 +144,17 @@ export default function PullRequestList({ pullRequests }) {
         </tr>
       </thead>
       <tbody>
-        {pullRequests.map((pullRequest, i) => (
-          <PullRequest key={i} pullRequest={pullRequest} />
-        ))}
+        {hasInitiallyLoadedPullRequests ? (
+          pullRequests.map((pullRequest, i) => (
+            <PullRequest key={i} pullRequest={pullRequest} />
+          ))
+        ) : (
+          <tr>
+            <td colSpan={7} className="p-4 text-sm text-gray-500">
+              Loading...
+            </td>
+          </tr>
+        )}
       </tbody>
     </table>
   );
@@ -156,6 +170,8 @@ PullRequestList.propTypes = {
       createdAt: PropTypes.instanceOf(Date).isRequired,
       priorityLevel: PropTypes.number.isRequired,
       statuses: PropTypes.arrayOf(PropTypes.string).isRequired,
+      url: PropTypes.string.isRequired,
     }),
   ),
+  hasInitiallyLoadedPullRequests: PropTypes.bool.isRequired,
 };

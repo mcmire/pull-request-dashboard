@@ -57,17 +57,17 @@ export async function getPullRequests({ apiToken }) {
                   commit {
                     authors(first: 5) {
                       nodes {
+                        email
+                        name
                         user {
-                          login
                           avatarUrl
+                          login
                           organizations(first: 5) {
                             nodes {
                               login
                             }
                           }
                         }
-                        name
-                        email
                       }
                     }
                   }
@@ -104,6 +104,7 @@ export async function getPullRequests({ apiToken }) {
               }
               publishedAt
               reviewDecision
+              url
               viewerDidAuthor
             }
           }
