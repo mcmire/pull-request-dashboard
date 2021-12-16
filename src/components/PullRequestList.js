@@ -16,6 +16,30 @@ export default function PullRequestList({
   pullRequests,
   hasInitiallyLoadedPullRequests,
 }) {
+  const renderTbody = () => {
+    if (hasInitiallyLoadedPullRequests) {
+      if (pullRequests.length > 0) {
+        return pullRequests.map((pullRequest, i) => (
+          <PullRequestRow key={i} pullRequest={pullRequest} />
+        ));
+      }
+      return (
+        <tr>
+          <td colSpan={7} className="pt-4 pb-4 text-sm">
+            There aren't any pull requests to review. Congrats! 🎉
+          </td>
+        </tr>
+      );
+    }
+    return (
+      <tr>
+        <td colSpan={7} className="pt-4 pb-4 text-sm text-gray-500 italic">
+          Loading, please wait...
+        </td>
+      </tr>
+    );
+  };
+
   return (
     <table className="w-full">
       <thead>
@@ -38,19 +62,7 @@ export default function PullRequestList({
           </th>
         </tr>
       </thead>
-      <tbody>
-        {hasInitiallyLoadedPullRequests ? (
-          pullRequests.map((pullRequest, i) => (
-            <PullRequestRow key={i} pullRequest={pullRequest} />
-          ))
-        ) : (
-          <tr>
-            <td colSpan={7} className="p-4 text-sm text-gray-500">
-              Loading...
-            </td>
-          </tr>
-        )}
-      </tbody>
+      <tbody>{renderTbody()}</tbody>
     </table>
   );
 }
