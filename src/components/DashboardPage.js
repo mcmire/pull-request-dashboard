@@ -27,10 +27,10 @@ export default function DashboardPage({ session, setSession }) {
       fetchPullRequests({ apiToken: session.apiToken, ...filters }).then(
         (fetchedPullRequests) => {
           setPullRequests(fetchedPullRequests);
+          setHasInitiallyLoadedPullRequests(true);
+          setIsUpdatingPullRequests(false);
         },
       );
-      setHasInitiallyLoadedPullRequests(true);
-      setIsUpdatingPullRequests(false);
     },
     [session],
   );
