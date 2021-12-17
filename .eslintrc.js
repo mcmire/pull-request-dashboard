@@ -1,6 +1,6 @@
 module.exports = {
   root: true,
-  extends: ['@metamask/eslint-config'],
+  extends: ['next/core-web-vitals', '@metamask/eslint-config'],
   ignorePatterns: ['node_modules/**', 'dist/**'],
   rules: {
     // Allow `x != null` checks
@@ -11,10 +11,9 @@ module.exports = {
     {
       files: [
         '.eslintrc.js',
-        'babel.config.js',
+        'next.config.js',
         'postcss.config.js',
         'tailwind.config.js',
-        'webpack.config.js',
       ],
       extends: ['@metamask/eslint-config-nodejs'],
       rules: {

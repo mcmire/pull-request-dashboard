@@ -58,6 +58,7 @@ export default function PullRequest({ pullRequest }) {
       </Cell>
       <Cell>
         <div className="flex">
+          {/* eslint-disable @next/next/no-img-element */}
           <img
             src={pullRequest.author.avatarUrl}
             className="rounded-full w-[1.4em] border border-white mr-[-0.5em]"
