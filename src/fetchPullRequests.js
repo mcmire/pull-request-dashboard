@@ -66,10 +66,19 @@ async function fetchPullRequestsFromApi(params) {
 
   lastTimeFetched = now;
 
-  const response = await getPullRequests(params);
+  const githubPullRequestNodes = [];
+  let response = await getPullRequests(params);
+  githubPullRequestNodes.push(...response.repository.pullRequests.nodes);
 
-  const pullRequests =
-    response.repository.pullRequests.nodes.map(buildPullRequest);
+  while (response.repository.pullRequests.pageInfo.hasNextPage) {
+    response = await getPullRequests({
+      ...params,
+      after: response.repository.pullRequests.pageInfo.endCursor,
+    });
+    githubPullRequestNodes.push(...response.repository.pullRequests.nodes);
+  }
+
+  const pullRequests = githubPullRequestNodes.map(buildPullRequest);
 
   if (SHOULD_CACHE) {
     localStorage.setItem(
