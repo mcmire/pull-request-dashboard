@@ -16,6 +16,7 @@ const STATUSES_BY_NAME = {
   isBlocked: 'Blocked by dependent task',
   isReadyToMerge: 'Ready to merge',
 };
+const WEEKS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Renders a cell.
@@ -49,6 +50,14 @@ Cell.propTypes = {
  * @returns {JSX.Element} The JSX that renders this component.
  */
 export default function PullRequest({ pullRequest }) {
+  const friendlyCreatedAt = friendlyTime(pullRequest.createdAt);
+  let match;
+  match = friendlyCreatedAt.match(/^(\d+) weeks ago$/u);
+  const isOld = match != null && [2, 3].includes(Number(match[1]));
+  match = friendlyCreatedAt.match(/^(\d+) weeks ago$|months|years/u);
+  const isAncient =
+    match != null && (match[1] == null || Number(match[1]) >= 4);
+
   return (
     <tr className="group">
       <Cell>
@@ -86,8 +95,13 @@ export default function PullRequest({ pullRequest }) {
           {pullRequest.title}
         </a>
       </Cell>
-      <Cell className="text-orange-500">
-        {friendlyTime(pullRequest.createdAt)}
+      <Cell
+        className={classnames({
+          'text-orange-500': isOld,
+          'text-red-500': isAncient,
+        })}
+      >
+        {friendlyCreatedAt}
       </Cell>
       <Cell>
         {times(pullRequest.priorityLevel, (i) => (
