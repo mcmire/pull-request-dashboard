@@ -61,6 +61,7 @@ export default function PullRequest({ pullRequest }) {
           <img
             src={pullRequest.author.avatarUrl}
             className="rounded-full w-[1.4em] border border-white mr-[-0.5em]"
+            alt={pullRequest.author.login}
           />
         </div>
       </Cell>

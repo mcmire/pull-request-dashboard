@@ -1,0 +1,271 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+### PROJECT SETUP ##############################################################
+
+# Feel free to add whatever functions or variables you want to add in this
+# section. You may also delete this section altogether if your project doesn't
+# need a custom setup.
+
+provision-project() {
+  # This function gets called automatically below.
+  # Feel free to remove these comments.
+  # If your project needs custom setup, then place that here.
+  true
+}
+
+### DON'T MODIFY ANYTHING BELOW THIS LINE! #####################################
+
+# This setup script was generated with setup_script_generator 0.5.0,
+# available on RubyGems.
+#
+# To regenerate this section, install the gem and run:
+#
+#     generate-setup -p node
+#
+
+# --- SETUP --------------------------------------------------------------------
+
+something_already_printed=0
+
+determine-platform() {
+  local uname=$(uname)
+
+  if [[ $uname == 'Darwin' ]]; then
+    echo 'mac'
+  else
+    echo 'linux'
+  fi
+}
+
+banner() {
+  print-with-color 34 "== $@ =="
+}
+
+success() {
+  print-with-color 32 "$@"
+}
+
+warning() {
+  print-with-color 33 "$@"
+}
+
+error() {
+  print-with-color 31 "$@"
+}
+
+print-with-color() {
+  pad-from-existing-output
+  echo -ne "\033[${1}m"
+  echo -n "${@:2}"
+  echo -e "\033[0m"
+  something_already_printed=1
+}
+
+print-wrapped() {
+  pad-from-existing-output
+  echo -n "$@" | fmt -w 80 | cat
+  something_already_printed=1
+}
+
+pad-from-existing-output() {
+  if [[ $something_already_printed -eq 1 ]]; then
+    echo
+  fi
+}
+
+print() {
+  pad-from-existing-output
+  echo "$@"
+  something_already_printed=1
+}
+
+has-executable() {
+  type "$1" &>/dev/null
+}
+
+is-running() {
+  pgrep "$1" >/dev/null
+}
+
+start() {
+  if has-executable brew; then
+    brew services start "$1"
+  else
+    sudo service "${2:-$1}" start
+  fi
+}
+
+install() {
+  local apt_package=""
+  local rpm_package=""
+  local brew_package=""
+  local default_package=""
+  local package=""
+
+  for arg in "$@"; do
+    case $arg in
+      apt=*)
+        apt_package="${arg#apt=}"
+        ;;
+      rpm=*)
+        rpm_package="${arg#rpm=}"
+        ;;
+      brew=*)
+        brew_package="${arg#brew=}"
+        ;;
+      *)
+        default_package="$arg"
+        ;;
+    esac
+  done
+
+  if has-executable brew; then
+    package="${brew_package:-$default_package}"
+
+    if [[ -n $package ]]; then
+      brew install "$package"
+    fi
+  elif has-executable apt-get; then
+    package="${apt_package:-$default_package}"
+
+    if [[ -n $package ]]; then
+      sudo apt-get install -y "$package"
+    fi
+  elif has-executable yum; then
+    package="${rpm_package:-$default_package}"
+
+    if [[ -n $package ]]; then
+      sudo yum install -y "$package"
+    fi
+  else
+    error "Sorry, I'm not sure how to install $default_package."
+    exit 1
+  fi
+}
+
+check-for-package-manager() {
+  local platform=$(determine-platform)
+
+  if [[ $platform == "linux" ]] && ! has-executable apt-get && ! has-executable yum; then
+    # TODO: Check if build-essential is installed on Debian?
+    # TODO: Check if 'Development Tools' group is installed on RedHat?
+
+    error "You don't seem to have a package manager installed."
+    print-wrapped "\
+This setup script assumes you're using a flavor of Linux derived from Debian or
+RedHat (i.e. something with Apt or Yum). If this is not the case, then we would
+gladly take a PR fixing this!"
+    exit 1
+  elif [[ $platform == "mac" ]] && ! has-executable brew; then
+    # TODO: Check that OS X Command Line Tools are installed?
+
+    error "You don't seem to have Homebrew installed."
+    print-wrapped "\
+Visit <https://brew.sh> and follow the instructions there, then re-run this
+script."
+    exit 1
+  fi
+}
+
+install-development-libraries() {
+  install rpm=zlib-devel
+}
+
+setup() {
+  cd "$(dirname "$(dirname "$0")")"
+  check-for-package-manager
+  install-development-libraries
+  run-provisions
+  if type provision-project &>/dev/null; then
+    provision-project
+  fi
+  success "Setup complete!"
+}
+
+# --- NODE ---------------------------------------------------------------------
+
+REQUIRED_NODE_VERSION=
+
+provision-node() {
+  if [[ -f .tool-versions ]]; then
+    REQUIRED_NODE_VERSION=$(cat .tool-versions | grep '^nodejs ' | sed -Ee 's/^nodejs (.+)$/\1/')
+  elif [[ -f .node-version ]]; then
+    REQUIRED_NODE_VERSION=$(cat .node-version)
+  elif [[ -f .nvmrc ]]; then
+    REQUIRED_NODE_VERSION=$(cat .nvmrc)
+  fi
+
+  if [[ -z $REQUIRED_NODE_VERSION ]]; then
+    error 'Could not determine required Node version for this project.'
+    print-wrapped "\
+Your project needs to include either a valid .tool-versions file with a 'nodejs'
+line or a valid .node-version or .nvimrc file."
+    exit 1
+  fi
+
+  ensure-node-installed
+  ensure-project-node-dependencies-installed
+}
+
+ensure-node-installed() {
+  if has-executable asdf; then
+    if ! (asdf current nodejs | grep $REQUIRED_NODE_VERSION'\>' &>/dev/null); then
+      banner "Installing Node $REQUIRED_NODE_VERSION with asdf"
+      asdf install nodejs $REQUIRED_NODE_VERSION
+    fi
+  elif has-executable nodenv; then
+    if ! (nodenv versions | grep $REQUIRED_NODE_VERSION'\>' &>/dev/null); then
+      banner "Installing Node $REQUIRED_NODE_VERSION with nodenv"
+      nodenv install --skip-existing "$REQUIRED_NODE_VERSION"
+    fi
+  elif has-executable nvm; then
+    if ! (nvm list | grep $required_node_version'\>' &>/dev/null); then
+      banner "Installing node $required_node_version with nvm"
+      nvm install $required_node_version
+      nvm use $required_node_version
+    fi
+  else
+    error "You don't seem to have a Node manager installed."
+    print-wrapped "\
+We recommend using asdf. You can find instructions to install it here:
+
+    https://asdf-vm.com
+
+When you're done, close and re-open this terminal tab and re-run this script."
+    exit 1
+  fi
+}
+
+ensure-project-node-dependencies-installed() {
+  if [[ -f package-lock.json ]]; then
+    banner 'Installing Node dependencies'
+    npm install
+  elif [[ -f yarn.lock ]]; then
+    # TODO: fix
+    if ! type yarn &>/dev/null || yarn -v 2>&1 | grep "No preset version installed"; then
+      banner 'Installing Yarn 1'
+      npm install -g yarn
+    fi
+    banner 'Installing Node dependencies'
+    yarn install
+  else
+    error "Sorry, I'm not sure how to install your dependencies."
+    print-wrapped "\
+It doesn't look like you have a package-lock.json or yarn.lock in your project
+yet. I'm not sure which package manager you plan on using, so you'll need to run
+either \`npm install\` or \`yarn install\` once first. Additionally, if you want
+to use Yarn 2, then now is the time to switch to that. Then you can re-run this
+script."
+    exit 1
+  fi
+}
+
+run-provisions() {
+  provision-node
+}
+
+# --- FIN ----------------------------------------------------------------------
+
+setup

@@ -1,17 +1,22 @@
-# METAPHOR
+# Pull Request Dashboard
 
-METAPHOR is a library that you can use to display a timeline of events.
+View and triage your pull requests.
 
-It is modeled after the Timeline module in SIMILE,
-an great opensource project which was developed in 2006 by MIT
-but is now unfortunately abandoned.
+Currently designed specifically for `Metamask/metamask-extension`,
+but support for other repositories is incoming.
 
-This repo is currently a proof of concept and includes not only the library being developed,
-but also a demo of its functionality.
+## Development
+
+* `yarn install` to install dependencies
+* `yarn start` to start the development server on `http://localhost:4000`
+
+## Deployment
+
+This project is deployed to Vercel:
+
+<>
 
 ## Author/License
 
 This project was developed by Elliot Winkler (<elliot.winkler@gmail.com>).
-It currently has no license.
-
-[simile-timeline]: http://www.simile-widgets.org/timeline
+It has no license.
