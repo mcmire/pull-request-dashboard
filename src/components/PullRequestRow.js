@@ -107,7 +107,8 @@ export default function PullRequest({ pullRequest }) {
                   'inline-block rounded-full text-white py-1.5 px-2.5 text-xs',
                   {
                     'bg-black': status === 'isBlocked',
-                    'bg-red-500': status !== 'isBlocked',
+                    'bg-red-500': status !== 'isReadyToMerge',
+                    'bg-green-500': status === 'isReadyToMerge',
                     'mr-2': i < pullRequest.statuses.length - 1,
                   },
                 )}
