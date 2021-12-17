@@ -7,14 +7,15 @@ but support for other repositories is incoming.
 
 ## Development
 
-* `yarn install` to install dependencies
-* `yarn start` to start the development server on `http://localhost:4000`
+* `yarn setup` to install dependencies
+* `yarn dev` to start the development server on `http://localhost:4000`
+* `yarn lint` to run the linter manually
 
 ## Deployment
 
 This project is deployed to Vercel:
 
-<>
+<https://pull-request-dashboard.vercel.app/>
 
 ## Author/License
 
