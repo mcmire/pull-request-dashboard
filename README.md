@@ -8,7 +8,7 @@ but support for other repositories is incoming.
 ## Development
 
 * `yarn setup` to install dependencies
-* `yarn dev` to start the development server on `http://localhost:4000`
+* `yarn dev` to start the development server on `http://localhost:3000`
 * `yarn lint` to run the linter manually
 
 ## Deployment
