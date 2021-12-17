@@ -42,7 +42,7 @@ export function fetchViewer({ apiToken }) {
  * @param {string} [args.after] - Fetch pull requests after this cursor.
  * @returns {Promise<object>} The response.
  */
-export async function getPullRequests({ apiToken, after = null }) {
+export async function fetchPullRequests({ apiToken, after = null }) {
   return graphql(
     `
       query {

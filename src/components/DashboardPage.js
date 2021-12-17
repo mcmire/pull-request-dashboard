@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import fetchPullRequests from '../fetchPullRequests';
+import getPullRequests from '../getPullRequests';
 import filterPullRequests from '../filterPullRequests';
 import FilterBar from './FilterBar';
 import PullRequestList from './PullRequestList';
@@ -53,7 +53,7 @@ export default function DashboardPage({ session, setSession }) {
       type: 'loading',
     }));
 
-    fetchPullRequests(session.apiToken)
+    getPullRequests(session.apiToken)
       .then((unfilteredPullRequests) => {
         setHasLoadedPullRequestsOnce(true);
         setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({

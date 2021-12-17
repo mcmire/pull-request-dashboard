@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash';
-import { getPullRequests } from './github';
+import { fetchPullRequests } from './github';
 import { HAS_REQUIRED_CHANGES, IS_READY_TO_MERGE } from './constants';
 
 const FAKE_REQUEST = false;
@@ -17,7 +17,7 @@ let lastTimeFetched;
  * the GitHub API.
  * @returns {PullRequest[]} The cached pull requests (before extra filtering).
  */
-function fetchPullRequestsFromCache(params) {
+function getPullRequestsFromCache(params) {
   if (SHOULD_RESET_CACHE) {
     localStorage.removeItem(CACHE_KEY);
   }
@@ -67,11 +67,11 @@ async function fetchPullRequestsFromApi(params) {
   lastTimeFetched = now;
 
   const githubPullRequestNodes = [];
-  let response = await getPullRequests(params);
+  let response = await fetchPullRequests(params);
   githubPullRequestNodes.push(...response.repository.pullRequests.nodes);
 
   while (response.repository.pullRequests.pageInfo.hasNextPage) {
-    response = await getPullRequests({
+    response = await fetchPullRequests({
       ...params,
       after: response.repository.pullRequests.pageInfo.endCursor,
     });
@@ -158,7 +158,7 @@ function buildPullRequest(pullRequestNode) {
  * GitHub API.
  * @returns {Promise<PullRequest>} The pull requests.
  */
-export default async function fetchPullRequests(apiToken) {
+export default async function getPullRequests(apiToken) {
   if (FAKE_REQUEST) {
     return new Promise((resolve) => {
       setTimeout(() => resolve([]), 3000);
@@ -166,7 +166,7 @@ export default async function fetchPullRequests(apiToken) {
   }
 
   const pullRequests =
-    (SHOULD_CACHE && fetchPullRequestsFromCache({ apiToken })) ||
+    (SHOULD_CACHE && getPullRequestsFromCache({ apiToken })) ||
     (await fetchPullRequestsFromApi({ apiToken }));
 
   return pullRequests;
