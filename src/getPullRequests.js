@@ -1,6 +1,12 @@
 import { isEqual } from 'lodash';
 import { fetchPullRequests } from './github';
-import { HAS_REQUIRED_CHANGES, IS_READY_TO_MERGE } from './constants';
+import {
+  HAS_REQUIRED_CHANGES,
+  IS_READY_TO_MERGE,
+  CREATED_AT,
+  PRIORITY_LEVEL,
+  STATUSES,
+} from './constants';
 
 const FAKE_REQUEST = false;
 const SHOULD_CACHE = true;
@@ -142,9 +148,9 @@ function buildPullRequest(pullRequestNode) {
     author,
     number,
     title,
-    createdAt,
-    priorityLevel,
-    statuses,
+    [CREATED_AT]: createdAt,
+    [PRIORITY_LEVEL]: priorityLevel,
+    [STATUSES]: statuses,
     url,
     isDraft,
   };

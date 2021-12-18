@@ -48,7 +48,7 @@ const FILTERS_BY_NAME = {
 };
 
 const initialSelectedFilters = {
-  [AUTHOR]: ME,
+  [AUTHOR]: MY_TEAM,
   [STATUSES]: [],
 };
 
@@ -62,7 +62,7 @@ const initialSelectedFilters = {
  * requests.
  * @param {boolean} props.hasLoadedPullRequestsOnce - Whether or not the
  * first request to fetch pull requests has been made.
- * @param {Function} props.updateFilters - A function to reload the list
+ * @param {Function} props.updateFilters - A function to refresh the list
  * of pull requests based on updates to filters.
  * @returns {JSX.Element} The JSX that renders this component.
  */
@@ -88,7 +88,7 @@ export default function FilterBar({
     if (pullRequestsRequestStatus.type === 'loaded') {
       updateFilters(selectedFilters);
     }
-  }, [updateFilters, selectedFilters, pullRequestsRequestStatus.type]);
+  }, [pullRequestsRequestStatus.type, updateFilters, selectedFilters]);
 
   const updateFilterSelection = (filterName, selection) => {
     setSelectedFilters({

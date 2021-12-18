@@ -1,8 +1,65 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import TriangleDownIcon from '../images/icons/octicons/triangle-down-16.svg';
-import PullRequestRow from './PullRequestRow';
+import TriangleUpIcon from '../images/icons/octicons/triangle-up-16.svg';
+import { CREATED_AT, PRIORITY_LEVEL, STATUSES } from '../constants';
 import { PullRequestType } from './types';
+import PullRequestRow from './PullRequestRow';
+
+const initialSorting = { column: CREATED_AT, reverse: false };
+
+/**
+ * A column header.
+ *
+ * @param {object} props - The props for this component.
+ * @param {"createdAt" | "priorityLevel" | "statuses"} props.name - The short
+ * name of this column.
+ * @param {string} props.label - The displayable name of this column.
+ * @param {boolean} props.currentSorting - Information about the current sorting
+ * setting.
+ * @param {Function} props.updateSortingOn - A function to re-render the table
+ * sorted by this column.
+ * @returns {JSX.Element} The JSX that renders this component.
+ */
+function ColumnHeader({ name, label, currentSorting, updateSortingOn }) {
+  const isCurrentSortColumn =
+    currentSorting != null && currentSorting.column === name;
+  return (
+    <th className="text-left text-xs font-normal text-gray-500 border-b py-1">
+      {updateSortingOn != null ? (
+        <a
+          href="#"
+          onClick={(event) => {
+            event.preventDefault();
+            updateSortingOn(name);
+          }}
+        >
+          <span className="inline-block align-middle">{label}</span>
+          {isCurrentSortColumn
+            ? React.createElement(
+                currentSorting.reverse ? TriangleDownIcon : TriangleUpIcon,
+                {
+                  className: 'h-[1.5em] inline-block align-middle',
+                },
+              )
+            : null}
+        </a>
+      ) : (
+        label
+      )}
+    </th>
+  );
+}
+
+ColumnHeader.propTypes = {
+  name: PropTypes.oneOf([CREATED_AT, PRIORITY_LEVEL, STATUSES]),
+  label: PropTypes.string,
+  currentSorting: PropTypes.shape({
+    column: PropTypes.oneOf([CREATED_AT, PRIORITY_LEVEL, STATUSES]).isRequired,
+    reverse: PropTypes.bool.isRequired,
+  }),
+  updateSortingOn: PropTypes.func,
+};
 
 /**
  * The component for the pull request list.
@@ -13,12 +70,32 @@ import { PullRequestType } from './types';
  * requests.
  * @param {boolean} props.hasLoadedPullRequestsOnce - Whether or not the
  * first request to fetch pull requests has been made.
+ * @param {Function} props.updateSorting - A function to reorder the list
+ * of pull requests.
  * @returns {JSX.Element} The JSX that renders this component.
  */
 export default function PullRequestList({
   pullRequestsRequestStatus,
   hasLoadedPullRequestsOnce,
+  updateSorting,
 }) {
+  const [sorting, setSorting] = useState(initialSorting);
+  useEffect(() => {
+    // TODO: Why this should wait for DashboardPage to load the pull requests?
+    // Seems like that's the responsibility of DashboardPage.
+    if (pullRequestsRequestStatus.type === 'loaded') {
+      updateSorting(sorting);
+    }
+  }, [pullRequestsRequestStatus.type, updateSorting, sorting]);
+
+  const updateSortingOn = (column) => {
+    const newSorting = {
+      column,
+      reverse: sorting.column === column ? !sorting.reverse : false,
+    };
+    setSorting(newSorting);
+  };
+
   const renderTbody = () => {
     if (
       pullRequestsRequestStatus.type === 'loaded' &&
@@ -60,22 +137,28 @@ export default function PullRequestList({
     <table className="w-full">
       <thead>
         <tr>
-          <th className="text-left text-xs font-normal text-gray-500 border-b py-1"></th>
-          <th className="text-left text-xs font-normal text-gray-500 border-b py-1"></th>
-          <th className="text-left text-xs font-normal text-gray-500 border-b py-1"></th>
-          <th className="text-left text-xs font-normal text-gray-500 border-b py-1">
-            Title
-          </th>
-          <th className="text-left text-xs font-normal text-gray-500 border-b py-1">
-            <span className="inline-block align-middle">Time</span>
-            <TriangleDownIcon className="h-[1.5em] inline-block align-middle" />
-          </th>
-          <th className="text-left text-xs font-normal text-gray-500 border-b py-1">
-            Priority
-          </th>
-          <th className="text-left text-xs font-normal text-gray-500 border-b py-1">
-            Statuses
-          </th>
+          <ColumnHeader />
+          <ColumnHeader />
+          <ColumnHeader />
+          <ColumnHeader label="Title" />
+          <ColumnHeader
+            label="Time"
+            name={CREATED_AT}
+            currentSorting={sorting}
+            updateSortingOn={updateSortingOn}
+          />
+          <ColumnHeader
+            label="Priority"
+            name={PRIORITY_LEVEL}
+            currentSorting={sorting}
+            updateSortingOn={updateSortingOn}
+          />
+          <ColumnHeader
+            label="Statuses"
+            name={STATUSES}
+            currentSorting={sorting}
+            updateSortingOn={updateSortingOn}
+          />
         </tr>
       </thead>
       <tbody>{renderTbody()}</tbody>
@@ -92,4 +175,5 @@ PullRequestList.propTypes = {
     errorMessage: PropTypes.string,
   }),
   hasLoadedPullRequestsOnce: PropTypes.bool.isRequired,
+  updateSorting: PropTypes.func.isRequired,
 };

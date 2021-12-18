@@ -31,6 +31,7 @@ module.exports = {
       },
       globals: {
         event: 'off',
+        name: 'off',
         status: 'off',
       },
       parser: '@babel/eslint-parser',

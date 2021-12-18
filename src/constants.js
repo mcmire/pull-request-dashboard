@@ -11,3 +11,7 @@ export const HAS_REQUIRED_CHANGES = 'hasRequiredChanges';
 export const HAS_MISSING_TESTS = 'hasMissingTests';
 export const IS_BLOCKED = 'isBlocked';
 export const IS_READY_TO_MERGE = 'isReadyToMerge';
+
+export const CREATED_AT = 'createdAt';
+export const PRIORITY_LEVEL = 'priorityLevel';
+// export const STATUSES = 'statuses';

@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import getPullRequests from '../getPullRequests';
 import filterPullRequests from '../filterPullRequests';
+import sortPullRequests from '../sortPullRequests';
 import FilterBar from './FilterBar';
 import PullRequestList from './PullRequestList';
 import SignOutButton from './SignOutButton';
@@ -47,6 +48,21 @@ export default function DashboardPage({ session, setSession }) {
     [session],
   );
 
+  // The useCallback here is necessary to prevent recursive state updates
+  const updateSorting = useCallback((sorting) => {
+    setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
+      ...previousPullRequestsRequestStatus,
+      type: 'loaded',
+      data: {
+        ...previousPullRequestsRequestStatus.data,
+        filteredPullRequests: sortPullRequests(
+          previousPullRequestsRequestStatus.data.filteredPullRequests,
+          sorting,
+        ),
+      },
+    }));
+  }, []);
+
   useEffect(() => {
     setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
       ...previousPullRequestsRequestStatus,
@@ -88,6 +104,7 @@ export default function DashboardPage({ session, setSession }) {
       <PullRequestList
         pullRequestsRequestStatus={pullRequestsRequestStatus}
         hasLoadedPullRequestsOnce={hasLoadedPullRequestsOnce}
+        updateSorting={updateSorting}
       />
     </>
   );
