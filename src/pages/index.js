@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { Toaster } from 'react-hot-toast';
-import DashboardPage from '../components/DashboardPage';
+import PullRequestsPage from '../components/PullRequestsPage';
 import SignInPage from '../components/SignInPage';
 
 /**
@@ -38,7 +38,7 @@ export default function Home() {
       </Head>
 
       {session != null ? (
-        <DashboardPage session={session} setSession={setSession} />
+        <PullRequestsPage session={session} setSession={setSession} />
       ) : (
         <SignInPage setSession={setSession} />
       )}

@@ -4,7 +4,7 @@ import getPullRequests from '../getPullRequests';
 import filterPullRequests from '../filterPullRequests';
 import sortPullRequests from '../sortPullRequests';
 import FilterBar from './FilterBar';
-import PullRequestList from './PullRequestList';
+import PullRequestsTable from './PullRequestsTable';
 import SignOutButton from './SignOutButton';
 
 /**
@@ -17,7 +17,7 @@ import SignOutButton from './SignOutButton';
  * auth session.
  * @returns {JSX.Element} The JSX used to render this component.
  */
-export default function DashboardPage({ session, setSession }) {
+export default function PullRequestsPage({ session, setSession }) {
   const [pullRequestsRequestStatus, setPullRequestsRequestStatus] = useState({
     type: 'pending',
     data: {
@@ -101,7 +101,7 @@ export default function DashboardPage({ session, setSession }) {
         />
         <SignOutButton setSession={setSession} />
       </div>
-      <PullRequestList
+      <PullRequestsTable
         pullRequestsRequestStatus={pullRequestsRequestStatus}
         hasLoadedPullRequestsOnce={hasLoadedPullRequestsOnce}
         updateSorting={updateSorting}
@@ -110,7 +110,7 @@ export default function DashboardPage({ session, setSession }) {
   );
 }
 
-DashboardPage.propTypes = {
+PullRequestsPage.propTypes = {
   session: PropTypes.shape({
     apiToken: PropTypes.string.isRequired,
   }).isRequired,

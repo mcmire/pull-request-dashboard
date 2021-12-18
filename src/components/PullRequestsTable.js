@@ -74,7 +74,7 @@ ColumnHeader.propTypes = {
  * of pull requests.
  * @returns {JSX.Element} The JSX that renders this component.
  */
-export default function PullRequestList({
+export default function PullRequestsTable({
   pullRequestsRequestStatus,
   hasLoadedPullRequestsOnce,
   updateSorting,
@@ -166,7 +166,7 @@ export default function PullRequestList({
   );
 }
 
-PullRequestList.propTypes = {
+PullRequestsTable.propTypes = {
   pullRequestsRequestStatus: PropTypes.shape({
     type: PropTypes.string.isRequired,
     data: PropTypes.shape({
