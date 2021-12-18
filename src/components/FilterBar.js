@@ -99,11 +99,6 @@ export default function FilterBar({
     });
   };
 
-  const onButtonClick = () => {
-    setPreviousSelectedFilters(selectedFilters);
-    return updateFilters({ filters: selectedFilters });
-  };
-
   return (
     <div className="flex">
       {FILTER_NAME_VALUES.map((filterName) => {
@@ -116,14 +111,6 @@ export default function FilterBar({
           />
         );
       })}
-      <Button
-        className="text-sm"
-        onClick={onButtonClick}
-        inactiveLabel="Filter"
-        activeLabel="Loading..."
-        isActive={isButtonActive}
-        disabled={isButtonDisabled}
-      />
     </div>
   );
 }
