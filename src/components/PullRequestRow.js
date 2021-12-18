@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import friendlyTime from 'friendly-time';
+import { STATUS_NAMES } from '../constants';
 import MetamaskIcon from '../images/metamask-fox.svg';
 import DotIcon from '../images/icons/octicons/dot-16.svg';
 import DotFillIcon from '../images/icons/octicons/dot-fill-16.svg';
@@ -10,13 +11,12 @@ import { PullRequestType } from './types';
 
 const MAX_PRIORITY_LEVEL = 5;
 const STATUSES_BY_NAME = {
-  hasMergeConflicts: 'Has merge conflicts',
-  hasRequiredChanges: 'Has required changes',
-  hasMissingTests: 'Missing tests',
-  isBlocked: 'Blocked by dependent task',
-  isReadyToMerge: 'Ready to merge',
+  [STATUS_NAMES.HAS_MERGE_CONFLICTS]: 'Has merge conflicts',
+  [STATUS_NAMES.HAS_REQUIRED_CHANGES]: 'Has required changes',
+  [STATUS_NAMES.HAS_MISSING_TESTS]: 'Missing tests',
+  [STATUS_NAMES.IS_BLOCKED]: 'Blocked by dependent task',
+  [STATUS_NAMES.IS_READY_TO_MERGE]: 'Ready to merge',
 };
-const WEEKS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * Renders a cell.

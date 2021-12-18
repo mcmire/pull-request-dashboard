@@ -1,5 +1,5 @@
 import { intersection } from 'lodash';
-import { CONTRIBUTORS, ME, MY_TEAM } from './constants';
+import { AUTHOR_FILTER_OPTION_NAMES } from './constants';
 
 /**
  * Determines whether the given pull request matches the selected author filter.
@@ -12,7 +12,7 @@ import { CONTRIBUTORS, ME, MY_TEAM } from './constants';
  * filter.
  */
 function matchesAuthorFilter(pullRequest, authorFilter, currentSession) {
-  if (authorFilter === ME) {
+  if (authorFilter === AUTHOR_FILTER_OPTION_NAMES.ME) {
     return pullRequest.author.login === currentSession.user.login;
   }
 
@@ -21,11 +21,11 @@ function matchesAuthorFilter(pullRequest, authorFilter, currentSession) {
     currentSession.user.teamLogins,
   );
 
-  if (authorFilter === MY_TEAM) {
+  if (authorFilter === AUTHOR_FILTER_OPTION_NAMES.MY_TEAM) {
     return commonTeamLogins.length > 0;
   }
 
-  if (authorFilter === CONTRIBUTORS) {
+  if (authorFilter === AUTHOR_FILTER_OPTION_NAMES.CONTRIBUTORS) {
     return commonTeamLogins.length === 0;
   }
 

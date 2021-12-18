@@ -1,12 +1,6 @@
 import { isEqual } from 'lodash';
 import { fetchPullRequests } from './github';
-import {
-  HAS_REQUIRED_CHANGES,
-  IS_READY_TO_MERGE,
-  CREATED_AT,
-  PRIORITY_LEVEL,
-  STATUSES,
-} from './constants';
+import { STATUS_NAMES, COLUMN_NAMES } from './constants';
 
 const FAKE_REQUEST = false;
 const SHOULD_CACHE = true;
@@ -136,9 +130,9 @@ function buildPullRequest(pullRequestNode) {
 
   const statuses = [];
   if (pullRequestNode.reviewDecision === 'REVIEW_REQUIRED') {
-    statuses.push(HAS_REQUIRED_CHANGES);
+    statuses.push(STATUS_NAMES.HAS_REQUIRED_CHANGES);
   } else {
-    statuses.push(IS_READY_TO_MERGE);
+    statuses.push(STATUS_NAMES.IS_READY_TO_MERGE);
   }
 
   const createdAt = new Date(Date.parse(pullRequestNode.publishedAt));
@@ -148,9 +142,9 @@ function buildPullRequest(pullRequestNode) {
     author,
     number,
     title,
-    [CREATED_AT]: createdAt,
-    [PRIORITY_LEVEL]: priorityLevel,
-    [STATUSES]: statuses,
+    [COLUMN_NAMES.CREATED_AT]: createdAt,
+    [COLUMN_NAMES.PRIORITY_LEVEL]: priorityLevel,
+    [COLUMN_NAMES.STATUSES]: statuses,
     url,
     isDraft,
   };

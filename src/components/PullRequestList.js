@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import TriangleDownIcon from '../images/icons/octicons/triangle-down-16.svg';
 import TriangleUpIcon from '../images/icons/octicons/triangle-up-16.svg';
-import { CREATED_AT, PRIORITY_LEVEL, STATUSES } from '../constants';
+import { COLUMN_NAMES } from '../constants';
 import { PullRequestType } from './types';
 import PullRequestRow from './PullRequestRow';
 
-const initialSorting = { column: CREATED_AT, reverse: false };
+const initialSorting = { column: COLUMN_NAMES.CREATED_AT, reverse: false };
 
 /**
  * A column header.
@@ -52,10 +52,10 @@ function ColumnHeader({ name, label, currentSorting, updateSortingOn }) {
 }
 
 ColumnHeader.propTypes = {
-  name: PropTypes.oneOf([CREATED_AT, PRIORITY_LEVEL, STATUSES]),
+  name: PropTypes.oneOf(Object.values(COLUMN_NAMES)),
   label: PropTypes.string,
   currentSorting: PropTypes.shape({
-    column: PropTypes.oneOf([CREATED_AT, PRIORITY_LEVEL, STATUSES]).isRequired,
+    column: PropTypes.oneOf(Object.values(COLUMN_NAMES)).isRequired,
     reverse: PropTypes.bool.isRequired,
   }),
   updateSortingOn: PropTypes.func,
@@ -143,19 +143,19 @@ export default function PullRequestList({
           <ColumnHeader label="Title" />
           <ColumnHeader
             label="Time"
-            name={CREATED_AT}
+            name={COLUMN_NAMES.CREATED_AT}
             currentSorting={sorting}
             updateSortingOn={updateSortingOn}
           />
           <ColumnHeader
             label="Priority"
-            name={PRIORITY_LEVEL}
+            name={COLUMN_NAMES.PRIORITY_LEVEL}
             currentSorting={sorting}
             updateSortingOn={updateSortingOn}
           />
           <ColumnHeader
             label="Statuses"
-            name={STATUSES}
+            name={COLUMN_NAMES.STATUSES}
             currentSorting={sorting}
             updateSortingOn={updateSortingOn}
           />

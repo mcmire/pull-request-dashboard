@@ -1,17 +1,22 @@
-export const AUTHOR = 'author';
-export const STATUSES = 'statuses';
-export const FILTER_NAMES = [AUTHOR, STATUSES];
+export const FILTER_NAMES = { AUTHOR: 'author', STATUSES: 'statuses' };
+export const FILTER_NAME_VALUES = [FILTER_NAMES.AUTHOR, FILTER_NAMES.STATUSES];
 
-export const ME = 'me';
-export const MY_TEAM = 'myTeam';
-export const CONTRIBUTORS = 'contributors';
+export const AUTHOR_FILTER_OPTION_NAMES = {
+  ME: 'me',
+  MY_TEAM: 'myTeam',
+  CONTRIBUTORS: 'contributors',
+};
 
-export const HAS_MERGE_CONFLICTS = 'hasMergeConflicts';
-export const HAS_REQUIRED_CHANGES = 'hasRequiredChanges';
-export const HAS_MISSING_TESTS = 'hasMissingTests';
-export const IS_BLOCKED = 'isBlocked';
-export const IS_READY_TO_MERGE = 'isReadyToMerge';
+export const STATUS_NAMES = {
+  HAS_MERGE_CONFLICTS: 'hasMergeConflicts',
+  HAS_REQUIRED_CHANGES: 'hasRequiredChanges',
+  HAS_MISSING_TESTS: 'hasMissingTests',
+  IS_BLOCKED: 'isBlocked',
+  IS_READY_TO_MERGE: 'isReadyToMerge',
+};
 
-export const CREATED_AT = 'createdAt';
-export const PRIORITY_LEVEL = 'priorityLevel';
-// export const STATUSES = 'statuses';
+export const COLUMN_NAMES = {
+  CREATED_AT: 'createdAt',
+  PRIORITY_LEVEL: 'priorityLevel',
+  STATUSES: 'statuses',
+};

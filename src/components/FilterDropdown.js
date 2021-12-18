@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
-import { FILTER_NAMES } from '../constants';
+import { FILTER_NAME_VALUES } from '../constants';
 import TriangleDownIcon from '../images/icons/octicons/triangle-down-16.svg';
 import CheckIcon from '../images/icons/octicons/check-16.svg';
 import DotFillIcon from '../images/icons/octicons/dot-fill-16.svg';
@@ -159,7 +159,7 @@ export default function FilterDropdown({ filter, selection, updateSelection }) {
 
 FilterDropdown.propTypes = {
   filter: PropTypes.shape({
-    name: PropTypes.oneOf(FILTER_NAMES),
+    name: PropTypes.oneOf(FILTER_NAME_VALUES),
     validOptions: PropTypes.arrayOf(
       PropTypes.shape({
         label: PropTypes.string.isRequired,

@@ -2,41 +2,40 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { isEqual } from 'lodash';
 import {
-  AUTHOR,
-  CONTRIBUTORS,
+  AUTHOR_FILTER_OPTION_NAMES,
   FILTER_NAMES,
-  HAS_MERGE_CONFLICTS,
-  HAS_MISSING_TESTS,
-  HAS_REQUIRED_CHANGES,
-  IS_BLOCKED,
-  IS_READY_TO_MERGE,
-  ME,
-  MY_TEAM,
-  STATUSES,
+  FILTER_NAME_VALUES,
+  STATUS_NAMES,
 } from '../constants';
 import FilterDropdown from './FilterDropdown';
 import Button from './Button';
 
 const FILTERS_BY_NAME = {
-  [AUTHOR]: {
-    name: AUTHOR,
+  [FILTER_NAMES.AUTHOR]: {
+    name: FILTER_NAMES.AUTHOR,
     validOptions: [
-      { label: 'My PRs', value: ME },
-      { label: "My Team's PRs", value: MY_TEAM },
-      { label: "Contributors' PRs", value: CONTRIBUTORS },
+      { label: 'My PRs', value: AUTHOR_FILTER_OPTION_NAMES.ME },
+      { label: "My Team's PRs", value: AUTHOR_FILTER_OPTION_NAMES.MY_TEAM },
+      {
+        label: "Contributors' PRs",
+        value: AUTHOR_FILTER_OPTION_NAMES.CONTRIBUTORS,
+      },
     ],
-    defaultOption: { label: 'My PRs', value: ME },
+    defaultOption: { label: 'My PRs', value: AUTHOR_FILTER_OPTION_NAMES.ME },
     className: 'w-[175px]',
     isEachOptionExclusive: true,
   },
-  [STATUSES]: {
-    name: STATUSES,
+  [FILTER_NAMES.STATUSES]: {
+    name: FILTER_NAMES.STATUSES,
     validOptions: [
-      { label: 'Has merge conflicts', value: HAS_MERGE_CONFLICTS },
-      { label: 'Has required changes', value: HAS_REQUIRED_CHANGES },
-      { label: 'Missing tests', value: HAS_MISSING_TESTS },
-      { label: 'Blocked by dependent task', value: IS_BLOCKED },
-      { label: 'Ready to merge', value: IS_READY_TO_MERGE },
+      { label: 'Has merge conflicts', value: STATUS_NAMES.HAS_MERGE_CONFLICTS },
+      {
+        label: 'Has required changes',
+        value: STATUS_NAMES.HAS_REQUIRED_CHANGES,
+      },
+      { label: 'Missing tests', value: STATUS_NAMES.HAS_MISSING_TESTS },
+      { label: 'Blocked by dependent task', value: STATUS_NAMES.IS_BLOCKED },
+      { label: 'Ready to merge', value: STATUS_NAMES.IS_READY_TO_MERGE },
     ],
     defaultOption: {
       label: 'Any status',
@@ -48,8 +47,8 @@ const FILTERS_BY_NAME = {
 };
 
 const initialSelectedFilters = {
-  [AUTHOR]: MY_TEAM,
-  [STATUSES]: [],
+  [FILTER_NAMES.AUTHOR]: AUTHOR_FILTER_OPTION_NAMES.MY_TEAM,
+  [FILTER_NAMES.STATUSES]: [],
 };
 
 /**
@@ -104,7 +103,7 @@ export default function FilterBar({
 
   return (
     <div className="flex">
-      {FILTER_NAMES.map((filterName) => {
+      {FILTER_NAME_VALUES.map((filterName) => {
         return (
           <FilterDropdown
             key={filterName}
