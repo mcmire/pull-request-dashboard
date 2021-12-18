@@ -1,11 +1,41 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
+import { isEqual } from 'lodash';
 import { FILTER_NAME_VALUES } from '../constants';
 import TriangleDownIcon from '../images/icons/octicons/triangle-down-16.svg';
 import CheckIcon from '../images/icons/octicons/check-16.svg';
 import DotFillIcon from '../images/icons/octicons/dot-fill-16.svg';
 import { isDescendant } from '../util';
+
+/**
+ * Builds the dropdown label for the given filter based on its currently
+ * selected values.
+ *
+ * @param {object} filter - Existing information about the filter.
+ * @param {string[]} selectedValues - The values that the user has selected for
+ * the filter.
+ * @returns {string} The label for the filter.
+ */
+function buildLabelForSelectedValues(filter, selectedValues) {
+  const allValuesSelected = isEqual(
+    selectedValues.sort(),
+    filter.validOptions.map((option) => option.value).sort(),
+  );
+
+  if (allValuesSelected) {
+    return filter.optionLabelWhenAllOptionsSelected;
+  }
+  const labels = selectedValues.map(
+    (optionValue) =>
+      filter.validOptions.find((option) => option.value === optionValue).label,
+  );
+
+  if (labels.length > 2) {
+    return `${labels.slice(2).join(', ')}, ...`;
+  }
+  return labels.join(', ');
+}
 
 /**
  * FilterDropdown.
@@ -23,6 +53,10 @@ export default function FilterDropdown({ filter, selection, updateSelection }) {
     typeof selection === 'string' ? [selection] : selection;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const ref = useRef(null);
+  const labelForSelectedValues = buildLabelForSelectedValues(
+    filter,
+    selectedValues,
+  );
 
   const closeMenu = useCallback(
     (event) => {
@@ -88,18 +122,7 @@ export default function FilterDropdown({ filter, selection, updateSelection }) {
       ref={ref}
       onClick={onClick}
     >
-      <span className="mr-1">
-        {selectedValues.length > 0
-          ? selectedValues
-              .map(
-                (optionValue) =>
-                  filter.validOptions.find(
-                    (option) => option.value === optionValue,
-                  ).label,
-              )
-              .join(', ')
-          : filter.defaultOption.label}
-      </span>
+      <span className="mr-1">{labelForSelectedValues}</span>
       <TriangleDownIcon className="h-[1.1em]" />
 
       <div
@@ -166,10 +189,7 @@ FilterDropdown.propTypes = {
         value: PropTypes.string.isRequired,
       }),
     ).isRequired,
-    defaultOption: PropTypes.shape({
-      label: PropTypes.string.isRequired,
-      value: PropTypes.string,
-    }).isRequired,
+    optionLabelWhenAllOptionsSelected: PropTypes.string,
     className: PropTypes.string.isRequired,
     isEachOptionExclusive: PropTypes.bool.isRequired,
   }).isRequired,

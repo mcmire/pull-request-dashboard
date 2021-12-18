@@ -21,7 +21,7 @@ const FILTERS_BY_NAME = {
         value: AUTHOR_FILTER_OPTION_NAMES.CONTRIBUTORS,
       },
     ],
-    defaultOption: { label: 'My PRs', value: AUTHOR_FILTER_OPTION_NAMES.ME },
+    optionLabelWhenAllOptionsSelected: 'All PRs',
     className: 'w-[175px]',
     isEachOptionExclusive: true,
   },
@@ -37,10 +37,7 @@ const FILTERS_BY_NAME = {
       { label: 'Blocked by dependent task', value: STATUS_NAMES.IS_BLOCKED },
       { label: 'Ready to merge', value: STATUS_NAMES.IS_READY_TO_MERGE },
     ],
-    defaultOption: {
-      label: 'Any status',
-      value: null,
-    },
+    optionLabelWhenAllOptionsSelected: 'Any status',
     className: 'w-[250px]',
     isEachOptionExclusive: false,
   },
@@ -48,7 +45,13 @@ const FILTERS_BY_NAME = {
 
 const initialSelectedFilters = {
   [FILTER_NAMES.AUTHOR]: AUTHOR_FILTER_OPTION_NAMES.MY_TEAM,
-  [FILTER_NAMES.STATUSES]: [],
+  [FILTER_NAMES.STATUSES]: [
+    STATUS_NAMES.HAS_MERGE_CONFLICTS,
+    STATUS_NAMES.HAS_REQUIRED_CHANGES,
+    STATUS_NAMES.HAS_MISSING_TESTS,
+    STATUS_NAMES.IS_BLOCKED,
+    STATUS_NAMES.IS_READY_TO_MERGE,
+  ],
 };
 
 /**
