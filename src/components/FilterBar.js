@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { isEqual } from 'lodash';
 import {
   AUTHOR_FILTER_OPTION_NAMES,
   FILTER_NAMES,
@@ -8,7 +7,6 @@ import {
   STATUS_NAMES,
 } from '../constants';
 import FilterDropdown from './FilterDropdown';
-import Button from './Button';
 
 const FILTERS_BY_NAME = {
   [FILTER_NAMES.AUTHOR]: {
@@ -62,27 +60,17 @@ const initialSelectedFilters = {
  * @param {PullRequestsRequestStatus} props.pullRequestsRequestStatus - An
  * object that contains information about the request made to fetch pull
  * requests.
- * @param {boolean} props.hasLoadedPullRequestsOnce - Whether or not the
- * first request to fetch pull requests has been made.
  * @param {Function} props.updateFilters - A function to refresh the list
  * of pull requests based on updates to filters.
  * @returns {JSX.Element} The JSX that renders this component.
  */
 export default function FilterBar({
   pullRequestsRequestStatus,
-  hasLoadedPullRequestsOnce,
   updateFilters,
 }) {
   const [selectedFilters, setSelectedFilters] = useState(
     initialSelectedFilters,
   );
-  const [previousSelectedFilters, setPreviousSelectedFilters] = useState(
-    initialSelectedFilters,
-  );
-  const isButtonActive =
-    hasLoadedPullRequestsOnce && pullRequestsRequestStatus.type !== 'loaded';
-  const isButtonDisabled =
-    isButtonActive || isEqual(selectedFilters, previousSelectedFilters);
 
   useEffect(() => {
     // TODO: Why this should wait for DashboardPage to load the pull requests?
@@ -119,6 +107,5 @@ FilterBar.propTypes = {
   pullRequestsRequestStatus: PropTypes.shape({
     type: PropTypes.string.isRequired,
   }),
-  hasLoadedPullRequestsOnce: PropTypes.bool.isRequired,
   updateFilters: PropTypes.func.isRequired,
 };

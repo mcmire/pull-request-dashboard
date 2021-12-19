@@ -96,7 +96,6 @@ export default function PullRequestsPage({ session, setSession }) {
       <div className="flex justify-between mb-4">
         <FilterBar
           pullRequestsRequestStatus={pullRequestsRequestStatus}
-          hasLoadedPullRequestsOnce={hasLoadedPullRequestsOnce}
           updateFilters={updateFilters}
         />
         <SignOutButton setSession={setSession} />
