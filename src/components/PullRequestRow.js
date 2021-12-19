@@ -1,8 +1,15 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
-import friendlyTime from 'friendly-time';
+import { interpolateRgb, piecewise } from 'd3-interpolate';
+import colors from 'tailwindcss/colors';
+import {
+  add as addDate,
+  formatDistanceStrict as formatDateDistanceStrict,
+} from 'date-fns';
+import { format as formatDate } from 'date-fns-tz';
 import { STATUS_NAMES } from '../constants';
+import { TimeContext } from '../contexts/time';
 import MetamaskIcon from '../images/metamask-fox.svg';
 import DotIcon from '../images/icons/octicons/dot-16.svg';
 import DotFillIcon from '../images/icons/octicons/dot-fill-16.svg';
@@ -19,6 +26,26 @@ const STATUSES_BY_NAME = {
 };
 
 /**
+ * Calculates the color for the pull request's time. This color is a gradient,
+ * starting out as black and becoming redder as the time approaches a year ago.
+ *
+ * @param {Date} now - The current time.
+ * @param {Date} createdAt - The pull request's time.
+ * @returns {string} A hex color.
+ */
+function determineColorForCreatedAt(now, createdAt) {
+  const oneYear = addDate(now, { years: 1 }).getTime() - now.getTime();
+  const distanceFromNow = now.getTime() - createdAt.getTime();
+  const normalizedCreatedAt =
+    distanceFromNow >= oneYear ? 1 : distanceFromNow / oneYear;
+  return piecewise(interpolateRgb.gamma(2.2), [
+    '#000',
+    colors.orange[500],
+    colors.red[500],
+  ])(normalizedCreatedAt);
+}
+
+/**
  * Renders a cell.
  *
  * @param {object} props - The props for this component.
@@ -29,7 +56,10 @@ const STATUSES_BY_NAME = {
 function Cell({ className, children, ...rest }) {
   return (
     <td
-      className={`${className} pr-2 py-2 border-b group-hover:bg-gray-100`}
+      className={classnames(
+        className,
+        'pr-2 py-2 border-b group-hover:bg-gray-100',
+      )}
       {...rest}
     >
       {children}
@@ -50,13 +80,15 @@ Cell.propTypes = {
  * @returns {JSX.Element} The JSX that renders this component.
  */
 export default function PullRequest({ pullRequest }) {
-  const friendlyCreatedAt = friendlyTime(pullRequest.createdAt);
-  let match;
-  match = friendlyCreatedAt.match(/^(\d+) weeks ago$/u);
-  const isOld = match != null && [2, 3].includes(Number(match[1]));
-  match = friendlyCreatedAt.match(/^(\d+) weeks ago$|months|years/u);
-  const isAncient =
-    match != null && (match[1] == null || Number(match[1]) >= 4);
+  const { now } = useContext(TimeContext);
+  const approximateCreatedAt = `${formatDateDistanceStrict(
+    now,
+    pullRequest.createdAt,
+    {
+      roundingMethod: 'floor',
+    },
+  )} ago`;
+  const color = determineColorForCreatedAt(now, pullRequest.createdAt);
 
   return (
     <tr className="group">
@@ -95,13 +127,13 @@ export default function PullRequest({ pullRequest }) {
           {pullRequest.title}
         </a>
       </Cell>
-      <Cell
-        className={classnames({
-          'text-orange-500': isOld,
-          'text-red-500': isAncient,
-        })}
-      >
-        {friendlyCreatedAt}
+      <Cell style={{ color }}>
+        <time
+          dateTime={pullRequest.createdAt.toISOString()}
+          title={formatDate(pullRequest.createdAt, 'MMM d, yyyy, h:ss aa zzz')}
+        >
+          {approximateCreatedAt}
+        </time>
       </Cell>
       <Cell>
         {times(pullRequest.priorityLevel, (i) => (

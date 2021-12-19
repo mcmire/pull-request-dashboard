@@ -3,6 +3,7 @@ import Head from 'next/head';
 import { Toaster } from 'react-hot-toast';
 import PullRequestsPage from '../components/PullRequestsPage';
 import SignInPage from '../components/SignInPage';
+import { TimeProvider } from '../contexts/time';
 
 /**
  * Component for the entire app.
@@ -31,7 +32,7 @@ export default function Home() {
   }, [session]);
 
   return (
-    <>
+    <TimeProvider>
       <Head>
         <title>Pull Request Dashboard</title>
         <link rel="icon" href="/favicon.ico" />
@@ -50,6 +51,6 @@ export default function Home() {
           },
         }}
       />
-    </>
+    </TimeProvider>
   );
 }
