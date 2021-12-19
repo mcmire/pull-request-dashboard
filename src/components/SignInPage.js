@@ -28,12 +28,12 @@ export default function SignInPage({ setSession }) {
         apiToken,
         user: {
           login: viewer.login,
-          teamLogins: viewer.organizations.nodes.map(
+          orgLogins: viewer.organizations.nodes.map(
             (organizationNode) => organizationNode.login,
           ),
         },
       };
-      if (session.user.teamLogins.includes('MetaMask')) {
+      if (session.user.orgLogins.includes('MetaMask')) {
         // TODO: This causes a "Can't perform a React state update on an
         // unmounted component" error if something breaks after sign-in
         setSession(session);

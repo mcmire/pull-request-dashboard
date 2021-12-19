@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import {
-  AUTHOR_FILTER_OPTION_NAMES,
+  AUTHOR_CATEGORY_NAMES,
   FILTER_NAMES,
   FILTER_NAME_VALUES,
   STATUS_NAMES,
@@ -9,14 +9,14 @@ import {
 import FilterDropdown from './FilterDropdown';
 
 const FILTERS_BY_NAME = {
-  [FILTER_NAMES.AUTHOR]: {
-    name: FILTER_NAMES.AUTHOR,
+  [FILTER_NAMES.AUTHOR_CATEGORIES]: {
+    name: FILTER_NAMES.AUTHOR_CATEGORIES,
     validOptions: [
-      { label: 'My PRs', value: AUTHOR_FILTER_OPTION_NAMES.ME },
-      { label: "My Team's PRs", value: AUTHOR_FILTER_OPTION_NAMES.MY_TEAM },
+      { label: 'My PRs', value: AUTHOR_CATEGORY_NAMES.ME },
+      { label: "My Team's PRs", value: AUTHOR_CATEGORY_NAMES.MY_TEAM },
       {
         label: "Contributors' PRs",
-        value: AUTHOR_FILTER_OPTION_NAMES.CONTRIBUTORS,
+        value: AUTHOR_CATEGORY_NAMES.CONTRIBUTORS,
       },
     ],
     optionLabelWhenAllOptionsSelected: 'All PRs',
@@ -42,7 +42,7 @@ const FILTERS_BY_NAME = {
 };
 
 const initialSelectedFilters = {
-  [FILTER_NAMES.AUTHOR]: [AUTHOR_FILTER_OPTION_NAMES.MY_TEAM],
+  [FILTER_NAMES.AUTHOR_CATEGORIES]: [AUTHOR_CATEGORY_NAMES.MY_TEAM],
   [FILTER_NAMES.STATUSES]: [
     STATUS_NAMES.HAS_MERGE_CONFLICTS,
     STATUS_NAMES.HAS_REQUIRED_CHANGES,

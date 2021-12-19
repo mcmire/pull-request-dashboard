@@ -30,23 +30,19 @@ export default function PullRequestsPage({ session, setSession }) {
     useState(false);
 
   // The useCallback here is necessary to prevent recursive state updates
-  const updateFilters = useCallback(
-    (filters) => {
-      setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
-        ...previousPullRequestsRequestStatus,
-        type: 'loaded',
-        data: {
-          ...previousPullRequestsRequestStatus.data,
-          filteredPullRequests: filterPullRequests(
-            previousPullRequestsRequestStatus.data.unfilteredPullRequests,
-            filters,
-            session,
-          ),
-        },
-      }));
-    },
-    [session],
-  );
+  const updateFilters = useCallback((filters) => {
+    setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
+      ...previousPullRequestsRequestStatus,
+      type: 'loaded',
+      data: {
+        ...previousPullRequestsRequestStatus.data,
+        filteredPullRequests: filterPullRequests(
+          previousPullRequestsRequestStatus.data.unfilteredPullRequests,
+          filters,
+        ),
+      },
+    }));
+  }, []);
 
   // The useCallback here is necessary to prevent recursive state updates
   const updateSorting = useCallback((sorting) => {
@@ -69,7 +65,7 @@ export default function PullRequestsPage({ session, setSession }) {
       type: 'loading',
     }));
 
-    getPullRequests(session.apiToken)
+    getPullRequests(session)
       .then((unfilteredPullRequests) => {
         setHasLoadedPullRequestsOnce(true);
         setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({

@@ -1,10 +1,10 @@
 import { isEqual } from 'lodash';
 import { fetchPullRequests } from './github';
-import { STATUS_NAMES, COLUMN_NAMES } from './constants';
+import buildPullRequest from './buildPullRequest';
 
 const FAKE_REQUEST = false;
 const SHOULD_CACHE = true;
-const SHOULD_RESET_CACHE = false;
+const SHOULD_RESET_CACHE = true;
 const CACHE_KEY = 'fetchPullRequestsRequest';
 const CACHE_MAX_AGE = 60 * 60 * 1000; // 1 hour
 let lastTimeFetched;
@@ -51,10 +51,11 @@ function getPullRequestsFromCache(params) {
  * @param {object} params - The data which specifies the request.
  * @param {string} params.apiToken - The token used to authenticate requests to
  * the GitHub API.
+ * @param {Session} currentUser - Information about the current user.
  * @returns {Promise<PullRequest[]>} A set of pull requests (before extra
  * filtering).
  */
-async function fetchPullRequestsFromApi(params) {
+async function fetchPullRequestsFromApi(params, currentUser) {
   const now = new Date().getTime();
 
   if (now - lastTimeFetched <= 500) {
@@ -78,7 +79,11 @@ async function fetchPullRequestsFromApi(params) {
     githubPullRequestNodes.push(...response.repository.pullRequests.nodes);
   }
 
-  const pullRequests = githubPullRequestNodes.map(buildPullRequest);
+  console.log('githubPullRequestNodes', githubPullRequestNodes);
+
+  const pullRequests = githubPullRequestNodes.map((pullRequestNode) =>
+    buildPullRequest(pullRequestNode, currentUser),
+  );
 
   if (SHOULD_CACHE) {
     localStorage.setItem(
@@ -95,70 +100,15 @@ async function fetchPullRequestsFromApi(params) {
 }
 
 /**
- * Builds an object that can be passed to {@link PullRequestRow} to render a
- * pull request.
- *
- * @param {PullRequestNode} pullRequestNode - A PullRequestNode object obtained
- * from the GitHub GraphQL API.
- * @returns {PullRequest} The pull request.
- */
-function buildPullRequest(pullRequestNode) {
-  const {
-    number,
-    title,
-    url,
-    isDraft,
-    author: pullRequestAuthor,
-  } = pullRequestNode;
-
-  let author;
-  if (pullRequestAuthor != null) {
-    const { login } = pullRequestAuthor;
-    const { avatarUrl } = pullRequestAuthor;
-    const teamLogins =
-      pullRequestAuthor.organizations?.nodes.map(
-        (organizationNode) => organizationNode.login,
-      ) ?? [];
-    author = { login, avatarUrl, teamLogins };
-  } else {
-    author = {
-      login: null,
-      avatarUrl: 'http://identicon.net/img/identicon.png',
-      teamLogins: [],
-    };
-  }
-
-  const statuses = [];
-  if (pullRequestNode.reviewDecision === 'REVIEW_REQUIRED') {
-    statuses.push(STATUS_NAMES.HAS_REQUIRED_CHANGES);
-  } else {
-    statuses.push(STATUS_NAMES.IS_READY_TO_MERGE);
-  }
-
-  const createdAt = new Date(Date.parse(pullRequestNode.publishedAt));
-  const priorityLevel = 1;
-
-  return {
-    author,
-    number,
-    title,
-    [COLUMN_NAMES.CREATED_AT]: createdAt,
-    [COLUMN_NAMES.PRIORITY_LEVEL]: priorityLevel,
-    [COLUMN_NAMES.STATUSES]: statuses,
-    url,
-    isDraft,
-  };
-}
-
-/**
  * Fetches pull requests from GitHub using the specified filters and then maps
  * them to a form that can be passed to the PullRequestList.
  *
- * @param {string} apiToken - The token used to authenticate requests to the
- * GitHub API.
+ * @param {Session} currentSession - Information about the current user.
  * @returns {Promise<PullRequest>} The pull requests.
  */
-export default async function getPullRequests(apiToken) {
+export default async function getPullRequests(currentSession) {
+  const { apiToken, user } = currentSession;
+
   if (FAKE_REQUEST) {
     return new Promise((resolve) => {
       setTimeout(() => resolve([]), 3000);
@@ -167,7 +117,7 @@ export default async function getPullRequests(apiToken) {
 
   const pullRequests =
     (SHOULD_CACHE && getPullRequestsFromCache({ apiToken })) ||
-    (await fetchPullRequestsFromApi({ apiToken }));
+    (await fetchPullRequestsFromApi({ apiToken }, user));
 
   return pullRequests;
 }

@@ -4,7 +4,7 @@ export const PullRequestType = PropTypes.shape({
   author: PropTypes.shape({
     login: PropTypes.string,
     avatarUrl: PropTypes.string.isRequired,
-    teamLogins: PropTypes.arrayOf(PropTypes.string).isRequired,
+    orgLogins: PropTypes.arrayOf(PropTypes.string).isRequired,
   }),
   number: PropTypes.number.isRequired,
   title: PropTypes.string.isRequired,
