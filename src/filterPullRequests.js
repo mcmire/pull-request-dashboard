@@ -12,8 +12,10 @@ import { AUTHOR_FILTER_OPTION_NAMES } from './constants';
  * filter.
  */
 function matchesAuthorFilter(pullRequest, authorFilter, currentSession) {
-  if (authorFilter === AUTHOR_FILTER_OPTION_NAMES.ME) {
-    return pullRequest.author.login === currentSession.user.login;
+  let condition = false;
+
+  if (authorFilter.includes(AUTHOR_FILTER_OPTION_NAMES.ME)) {
+    condition ||= pullRequest.author.login === currentSession.user.login;
   }
 
   const commonTeamLogins = intersection(
@@ -21,15 +23,15 @@ function matchesAuthorFilter(pullRequest, authorFilter, currentSession) {
     currentSession.user.teamLogins,
   );
 
-  if (authorFilter === AUTHOR_FILTER_OPTION_NAMES.MY_TEAM) {
-    return commonTeamLogins.length > 0;
+  if (authorFilter.includes(AUTHOR_FILTER_OPTION_NAMES.MY_TEAM)) {
+    condition ||= commonTeamLogins.length > 0;
   }
 
-  if (authorFilter === AUTHOR_FILTER_OPTION_NAMES.CONTRIBUTORS) {
-    return commonTeamLogins.length === 0;
+  if (authorFilter.includes(AUTHOR_FILTER_OPTION_NAMES.CONTRIBUTORS)) {
+    condition ||= commonTeamLogins.length === 0;
   }
 
-  return false;
+  return condition;
 }
 
 /**

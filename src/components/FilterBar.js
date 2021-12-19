@@ -21,7 +21,7 @@ const FILTERS_BY_NAME = {
     ],
     optionLabelWhenAllOptionsSelected: 'All PRs',
     className: 'w-[175px]',
-    isEachOptionExclusive: true,
+    isEachOptionExclusive: false,
   },
   [FILTER_NAMES.STATUSES]: {
     name: FILTER_NAMES.STATUSES,
@@ -42,7 +42,7 @@ const FILTERS_BY_NAME = {
 };
 
 const initialSelectedFilters = {
-  [FILTER_NAMES.AUTHOR]: AUTHOR_FILTER_OPTION_NAMES.MY_TEAM,
+  [FILTER_NAMES.AUTHOR]: [AUTHOR_FILTER_OPTION_NAMES.MY_TEAM],
   [FILTER_NAMES.STATUSES]: [
     STATUS_NAMES.HAS_MERGE_CONFLICTS,
     STATUS_NAMES.HAS_REQUIRED_CHANGES,

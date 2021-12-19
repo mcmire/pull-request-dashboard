@@ -26,10 +26,15 @@ function buildLabelForSelectedValues(filter, selectedValues) {
   if (allValuesSelected) {
     return filter.optionLabelWhenAllOptionsSelected;
   }
-  const labels = selectedValues.map(
-    (optionValue) =>
-      filter.validOptions.find((option) => option.value === optionValue).label,
-  );
+  const labels = selectedValues.map((optionValue) => {
+    const foundFilter = filter.validOptions.find(
+      (option) => option.value === optionValue,
+    );
+    if (foundFilter == null) {
+      throw new Error(`Couldn't find filter by ${optionValue}`);
+    }
+    return foundFilter.label;
+  });
 
   if (labels.length > 2) {
     return `${labels.slice(2).join(', ')}, ...`;
