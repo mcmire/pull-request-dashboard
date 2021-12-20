@@ -88,7 +88,7 @@ export default function PullRequest({ pullRequest }) {
 
   const renderPriorityLevel = () => {
     if (pullRequest.priorityLevel === 0) {
-      return '—';
+      return <span className="text-gray-300">—</span>;
     }
     return times(pullRequest.priorityLevel, (i) => (
       <DotFillIcon key={i} className="inline-block h-[1em]" />
