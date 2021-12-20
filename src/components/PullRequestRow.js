@@ -8,7 +8,7 @@ import {
   formatDistanceStrict as formatDateDistanceStrict,
 } from 'date-fns';
 import { format as formatDate } from 'date-fns-tz';
-import { STATUS_NAMES } from '../constants';
+import { STATUSES_BY_NAME } from '../constants';
 import { TimeContext } from '../contexts/time';
 import MetamaskIcon from '../images/metamask-fox.svg';
 import DotIcon from '../images/icons/octicons/dot-16.svg';
@@ -17,13 +17,6 @@ import { times } from '../util';
 import { PullRequestType } from './types';
 
 const MAX_PRIORITY_LEVEL = 5;
-const STATUSES_BY_NAME = {
-  [STATUS_NAMES.HAS_MERGE_CONFLICTS]: 'Has merge conflicts',
-  [STATUS_NAMES.HAS_REQUIRED_CHANGES]: 'Has required changes',
-  [STATUS_NAMES.HAS_MISSING_TESTS]: 'Missing tests',
-  [STATUS_NAMES.IS_BLOCKED]: 'Blocked by dependent task',
-  [STATUS_NAMES.IS_READY_TO_MERGE]: 'Ready to merge',
-};
 
 /**
  * Calculates the color for the pull request's time. This color is a gradient,
@@ -50,15 +43,17 @@ function determineColorForCreatedAt(now, createdAt) {
  *
  * @param {object} props - The props for this component.
  * @param {string} props.className - CSS classes.
+ * @param {string} props.align - How to vertically-align the contents of the
+ * cell.
  * @param {JSX.Element} props.children - The children.
  * @returns {JSX.Element} The JSX that renders this component.
  */
-function Cell({ className, children, ...rest }) {
+function Cell({ className, align = 'top', children, ...rest }) {
   return (
     <td
       className={classnames(
+        `pr-2 py-2 border-b group-hover:bg-gray-100 align-${align}`,
         className,
-        'pr-2 py-2 border-b group-hover:bg-gray-100',
       )}
       {...rest}
     >
@@ -69,6 +64,7 @@ function Cell({ className, children, ...rest }) {
 
 Cell.propTypes = {
   className: PropTypes.string,
+  align: PropTypes.string,
   children: PropTypes.node,
 };
 
@@ -97,12 +93,12 @@ export default function PullRequest({ pullRequest }) {
           <MetamaskIcon className="h-[1.2em]" />
         ) : null}
       </Cell>
-      <Cell>
-        <div className="flex">
+      <Cell align="top">
+        <div className="inline-block pt-[0.07em]">
           {/* eslint-disable @next/next/no-img-element */}
           <img
             src={pullRequest.author.avatarUrl}
-            className="rounded-full w-[1.4em] border border-white mr-[-0.5em]"
+            className="rounded-full w-[2em] border border-white mr-[-0.5em]"
             alt={pullRequest.author.login}
           />
         </div>
@@ -127,7 +123,7 @@ export default function PullRequest({ pullRequest }) {
           {pullRequest.title}
         </a>
       </Cell>
-      <Cell style={{ color }}>
+      <Cell style={{ color }} className="w-[8em]">
         <time
           dateTime={pullRequest.createdAt.toISOString()}
           title={formatDate(pullRequest.createdAt, 'MMM d, yyyy, h:ss aa zzz')}
@@ -135,7 +131,7 @@ export default function PullRequest({ pullRequest }) {
           {approximateCreatedAt}
         </time>
       </Cell>
-      <Cell>
+      <Cell className="w-[6em]">
         {times(pullRequest.priorityLevel, (i) => (
           <DotFillIcon key={i} className="inline-block h-[1em]" />
         ))}
@@ -144,13 +140,13 @@ export default function PullRequest({ pullRequest }) {
         ))}
       </Cell>
       <Cell>
-        <div className="flex items-center">
+        <div className="flex flex-row items-center">
           {pullRequest.statuses.map((status, i) => {
             return (
               <span
                 key={i}
                 className={classnames(
-                  'inline-block rounded-full text-white py-1.5 px-2.5 text-xs',
+                  'rounded-full text-white py-1.5 px-2.5 text-xs whitespace-nowrap',
                   {
                     'bg-black': status === 'isBlocked',
                     'bg-red-500': status !== 'isReadyToMerge',

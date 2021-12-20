@@ -12,6 +12,7 @@ export default function filterPullRequests(pullRequests, filters) {
   return pullRequests.filter((pullRequest) => {
     return (
       !pullRequest.isDraft &&
+      !pullRequest.labelNames.includes('DO-NOT-MERGE') &&
       every(
         filters,
         (values, name) => intersection(pullRequest[name], values).length > 0,

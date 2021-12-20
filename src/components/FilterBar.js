@@ -4,7 +4,8 @@ import {
   AUTHOR_CATEGORY_NAMES,
   FILTER_NAMES,
   FILTER_NAME_VALUES,
-  STATUS_NAMES,
+  STATUS_NAME_VALUES,
+  STATUSES_BY_NAME,
 } from '../constants';
 import FilterDropdown from './FilterDropdown';
 
@@ -25,16 +26,10 @@ const FILTERS_BY_NAME = {
   },
   [FILTER_NAMES.STATUSES]: {
     name: FILTER_NAMES.STATUSES,
-    validOptions: [
-      { label: 'Has merge conflicts', value: STATUS_NAMES.HAS_MERGE_CONFLICTS },
-      {
-        label: 'Has required changes',
-        value: STATUS_NAMES.HAS_REQUIRED_CHANGES,
-      },
-      { label: 'Missing tests', value: STATUS_NAMES.HAS_MISSING_TESTS },
-      { label: 'Blocked by dependent task', value: STATUS_NAMES.IS_BLOCKED },
-      { label: 'Ready to merge', value: STATUS_NAMES.IS_READY_TO_MERGE },
-    ],
+    validOptions: STATUS_NAME_VALUES.map((name) => ({
+      label: STATUSES_BY_NAME[name],
+      value: name,
+    })),
     optionLabelWhenAllOptionsSelected: 'Any status',
     className: 'w-[250px]',
     isEachOptionExclusive: false,
@@ -43,13 +38,9 @@ const FILTERS_BY_NAME = {
 
 const initialSelectedFilters = {
   [FILTER_NAMES.AUTHOR_CATEGORIES]: [AUTHOR_CATEGORY_NAMES.MY_TEAM],
-  [FILTER_NAMES.STATUSES]: [
-    STATUS_NAMES.HAS_MERGE_CONFLICTS,
-    STATUS_NAMES.HAS_REQUIRED_CHANGES,
-    STATUS_NAMES.HAS_MISSING_TESTS,
-    STATUS_NAMES.IS_BLOCKED,
-    STATUS_NAMES.IS_READY_TO_MERGE,
-  ],
+  [FILTER_NAMES.STATUSES]: FILTERS_BY_NAME[
+    FILTER_NAMES.STATUSES
+  ].validOptions.map((option) => option.value),
 };
 
 /**

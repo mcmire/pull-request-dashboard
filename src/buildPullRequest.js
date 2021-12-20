@@ -66,11 +66,36 @@ function determineAuthorCategories(author, currentUser) {
  */
 function determineStatuses(pullRequestNode) {
   const statuses = [];
+  const labelNames = pullRequestNode.labels.nodes.map((label) => label.name);
 
   if (pullRequestNode.reviewDecision === 'REVIEW_REQUIRED') {
+    statuses.push(STATUS_NAMES.NEEDS_REVIEW);
+  } else if (pullRequestNode.reviewDecision === 'CHANGES_REQUESTED') {
     statuses.push(STATUS_NAMES.HAS_REQUIRED_CHANGES);
-  } else {
+  }
+
+  if (pullRequestNode.mergeable === 'CONFLICTING') {
+    statuses.push(STATUS_NAMES.HAS_MERGE_CONFLICTS);
+  }
+
+  if (
+    pullRequestNode.commits.nodes[0].commit.status?.contexts.some(
+      (context) => context.state === 'FAILURE',
+    )
+  ) {
+    statuses.push(STATUS_NAMES.HAS_FAILING_REQUIRED_CHECKS);
+  }
+
+  if (statuses.length === 0) {
     statuses.push(STATUS_NAMES.IS_READY_TO_MERGE);
+  }
+
+  if (labelNames.includes('blocked')) {
+    statuses.push(STATUS_NAMES.IS_BLOCKED);
+  }
+
+  if (labelNames.includes('needs-tests')) {
+    statuses.push(STATUS_NAMES.HAS_MISSING_TESTS);
   }
 
   return statuses;
@@ -98,6 +123,7 @@ export default function buildPullRequest(pullRequestNode, currentUser) {
   const statuses = determineStatuses(pullRequestNode);
   const createdAt = new Date(Date.parse(pullRequestNode.publishedAt));
   const priorityLevel = 1;
+  const labelNames = pullRequestNode.labels.nodes.map((label) => label.name);
 
   return {
     author,
@@ -109,5 +135,6 @@ export default function buildPullRequest(pullRequestNode, currentUser) {
     [COLUMN_NAMES.STATUSES]: statuses,
     url,
     isDraft,
+    labelNames,
   };
 }

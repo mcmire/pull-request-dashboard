@@ -4,7 +4,7 @@ import buildPullRequest from './buildPullRequest';
 
 const FAKE_REQUEST = false;
 const SHOULD_CACHE = true;
-const SHOULD_RESET_CACHE = true;
+const SHOULD_RESET_CACHE = false;
 const CACHE_KEY = 'fetchPullRequestsRequest';
 const CACHE_MAX_AGE = 60 * 60 * 1000; // 1 hour
 let lastTimeFetched;
@@ -79,7 +79,7 @@ async function fetchPullRequestsFromApi(params, currentUser) {
     githubPullRequestNodes.push(...response.repository.pullRequests.nodes);
   }
 
-  console.log('githubPullRequestNodes', githubPullRequestNodes);
+  // console.log('githubPullRequestNodes', githubPullRequestNodes);
 
   const pullRequests = githubPullRequestNodes.map((pullRequestNode) =>
     buildPullRequest(pullRequestNode, currentUser),
@@ -118,6 +118,8 @@ export default async function getPullRequests(currentSession) {
   const pullRequests =
     (SHOULD_CACHE && getPullRequestsFromCache({ apiToken })) ||
     (await fetchPullRequestsFromApi({ apiToken }, user));
+
+  // console.log('pullRequests', pullRequests);
 
   return pullRequests;
 }

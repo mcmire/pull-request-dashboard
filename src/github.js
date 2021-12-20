@@ -76,6 +76,19 @@ export async function fetchPullRequests({ apiToken, after = null }) {
                   }
                 }
               }
+              commits(last: 1) {
+                nodes {
+                  commit {
+                    message
+                    status {
+                      contexts {
+                        state
+                        context
+                      }
+                    }
+                  }
+                }
+              }
               number
               title
               isDraft
