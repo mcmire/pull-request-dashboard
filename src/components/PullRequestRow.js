@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { interpolateRgb, piecewise } from 'd3-interpolate';
@@ -9,7 +9,7 @@ import {
 } from 'date-fns';
 import { format as formatDate } from 'date-fns-tz';
 import { STATUS_NAMES, STATUSES_BY_NAME } from '../constants';
-import { TimeContext } from '../contexts/time';
+import { useNow } from '../hooks/now';
 import MetamaskIcon from '../images/metamask-fox.svg';
 import DotIcon from '../images/icons/octicons/dot-16.svg';
 import DotFillIcon from '../images/icons/octicons/dot-fill-16.svg';
@@ -76,7 +76,7 @@ Cell.propTypes = {
  * @returns {JSX.Element} The JSX that renders this component.
  */
 export default function PullRequest({ pullRequest }) {
-  const { now } = useContext(TimeContext);
+  const now = useNow();
   const approximateCreatedAt = `${formatDateDistanceStrict(
     now,
     pullRequest.createdAt,

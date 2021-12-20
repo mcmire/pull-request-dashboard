@@ -1,6 +1,6 @@
 module.exports = {
   mode: 'jit',
-  content: ['./src/components/*.{js,jsx}'],
+  content: ['./src/components/*.{js,jsx}', './src/pages/*.{js,jsx}'],
   theme: {
     extend: {
       boxShadow: {

@@ -1,16 +1,14 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import { useSession } from '../hooks/session';
 import Button from './Button';
 
 /**
  * The button the user can use to sign out.
  *
- * @param {object} props - The props to this component.
- * @param {Function} props.setSession - A function used to update the current
- * auth session.
  * @returns {JSX.Element} The JSX used to render this component.
  */
-export default function SignOutButton({ setSession }) {
+export default function SignOutButton() {
+  const { setSession } = useSession();
   const onClick = async () => {
     // Signing out takes no time at all, so fake a delay
     await new Promise((resolve) => {
@@ -30,6 +28,4 @@ export default function SignOutButton({ setSession }) {
   );
 }
 
-SignOutButton.propTypes = {
-  setSession: PropTypes.func.isRequired,
-};
+SignOutButton.propTypes = {};

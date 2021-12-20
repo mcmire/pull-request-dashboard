@@ -1,56 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import Head from 'next/head';
-import { Toaster } from 'react-hot-toast';
-import PullRequestsPage from '../components/PullRequestsPage';
-import SignInPage from '../components/SignInPage';
-import { TimeProvider } from '../contexts/time';
+import { useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { ROUTES } from '../constants';
+import { useSession } from '../hooks/session';
 
 /**
  * Component for the entire app.
  *
- * @returns {JSX.Element} The JSX that renders this component.
+ * @returns {null} Nothing.
  */
-export default function Home() {
-  const [session, setSession] = useState(undefined);
+export default function IndexPage() {
+  const { session } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
-    const savedSession = localStorage.getItem('session');
-
-    if (savedSession != null) {
-      setSession(JSON.parse(savedSession));
+    if (session === null) {
+      router.replace(ROUTES.SIGN_IN);
+    } else {
+      router.replace(ROUTES.PULL_REQUESTS);
     }
-  }, []);
+  }, [session, router]);
 
-  useEffect(() => {
-    if (session !== undefined) {
-      if (session === null) {
-        localStorage.removeItem('session');
-      } else {
-        localStorage.setItem('session', JSON.stringify(session));
-      }
-    }
-  }, [session]);
-
-  return (
-    <TimeProvider>
-      <Head>
-        <title>Pull Request Dashboard</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      {session != null ? (
-        <PullRequestsPage session={session} setSession={setSession} />
-      ) : (
-        <SignInPage setSession={setSession} />
-      )}
-      <Toaster
-        position="bottom-right"
-        toastOptions={{
-          error: {
-            duration: 10000,
-          },
-        }}
-      />
-    </TimeProvider>
-  );
+  return null;
 }

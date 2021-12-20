@@ -83,3 +83,9 @@ export const DEFAULT_SELECTED_FILTERS = {
     FILTER_NAMES.STATUSES
   ].validOptions.map((option) => option.value),
 };
+
+export const ROUTES = {
+  ROOT: '/',
+  PULL_REQUESTS: '/pull_requests',
+  SIGN_IN: '/sign_in',
+};

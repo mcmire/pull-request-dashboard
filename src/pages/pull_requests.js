@@ -1,24 +1,22 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import PropTypes from 'prop-types';
-import { DEFAULT_SELECTED_FILTERS } from '../constants';
+import { useRouter } from 'next/router';
+import { DEFAULT_SELECTED_FILTERS, ROUTES } from '../constants';
+import FilterBar from '../components/FilterBar';
+import PullRequestsTable from '../components/PullRequestsTable';
+import SignOutButton from '../components/SignOutButton';
+import { useSession } from '../hooks/session';
 import getPullRequests from '../getPullRequests';
 import filterPullRequests from '../filterPullRequests';
 import sortPullRequests from '../sortPullRequests';
-import FilterBar from './FilterBar';
-import PullRequestsTable from './PullRequestsTable';
-import SignOutButton from './SignOutButton';
 
 /**
  * The page which appears when the user is signed in.
  *
- * @param {object} props - The props to this component.
- * @param {object} props.session - Information about the currently signed in
- * user.
- * @param {Function} props.setSession - A function used to update the current
- * auth session.
  * @returns {JSX.Element} The JSX used to render this component.
  */
-export default function PullRequestsPage({ session, setSession }) {
+export default function PullRequestsPage() {
+  const router = useRouter();
+  const { session } = useSession();
   const [savedSelectedFilters, setSavedSelectedFilters] = useState(
     DEFAULT_SELECTED_FILTERS,
   );
@@ -49,31 +47,39 @@ export default function PullRequestsPage({ session, setSession }) {
   }, []);
 
   useEffect(() => {
-    setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
-      ...previousPullRequestsRequestStatus,
-      type: 'loading',
-    }));
+    if (session == null) {
+      router.replace(ROUTES.SIGN_IN);
+    }
+  }, [session, router]);
 
-    getPullRequests(session)
-      .then((unfilteredPullRequests) => {
-        setHasLoadedPullRequestsOnce(true);
-        setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
-          ...previousPullRequestsRequestStatus,
-          type: 'loaded',
-          data: {
-            ...previousPullRequestsRequestStatus.data,
-            unfilteredPullRequests,
-          },
-        }));
-      })
-      .catch((error) => {
-        setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
-          ...previousPullRequestsRequestStatus,
-          type: 'error',
-          errorMessage: `Couldn't fetch pull requests: ${error}`,
-        }));
-        console.error(error);
-      });
+  useEffect(() => {
+    if (session != null) {
+      setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
+        ...previousPullRequestsRequestStatus,
+        type: 'loading',
+      }));
+
+      getPullRequests(session)
+        .then((unfilteredPullRequests) => {
+          setHasLoadedPullRequestsOnce(true);
+          setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
+            ...previousPullRequestsRequestStatus,
+            type: 'loaded',
+            data: {
+              ...previousPullRequestsRequestStatus.data,
+              unfilteredPullRequests,
+            },
+          }));
+        })
+        .catch((error) => {
+          setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
+            ...previousPullRequestsRequestStatus,
+            type: 'error',
+            errorMessage: `Couldn't fetch pull requests: ${error}`,
+          }));
+          console.error(error);
+        });
+    }
   }, [session]);
 
   // The useCallback here is necessary to prevent recursive state updates
@@ -93,14 +99,14 @@ export default function PullRequestsPage({ session, setSession }) {
     }
   }, [pullRequestsRequestStatus.type, savedSelectedFilters]);
 
-  return (
+  return session == null ? null : (
     <>
       <div className="flex justify-between mb-4">
         <FilterBar
           savedSelectedFilters={savedSelectedFilters}
           setSavedSelectedFilters={setSavedSelectedFilters}
         />
-        <SignOutButton setSession={setSession} />
+        <SignOutButton />
       </div>
       <PullRequestsTable
         pullRequestsRequestStatus={pullRequestsRequestStatus}
@@ -111,9 +117,4 @@ export default function PullRequestsPage({ session, setSession }) {
   );
 }
 
-PullRequestsPage.propTypes = {
-  session: PropTypes.shape({
-    apiToken: PropTypes.string.isRequired,
-  }).isRequired,
-  setSession: PropTypes.func.isRequired,
-};
+PullRequestsPage.propTypes = {};

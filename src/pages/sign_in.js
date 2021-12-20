@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
+import { ROUTES } from '../constants';
 import { fetchViewer } from '../github';
-import Button from './Button';
+import Button from '../components/Button';
+import { useSession } from '../hooks/session';
 
 /**
  * The page the user can use to sign in.
  *
- * @param {object} props - The props to this component.
- * @param {Function} props.setSession - A function used to update the current
- * auth session.
  * @returns {JSX.Element} The JSX used to render this component.
  */
-export default function SignInPage({ setSession }) {
+export default function SignInPage() {
+  const router = useRouter();
+  const { session, setSession } = useSession();
   const [apiToken, setApiToken] = useState('');
   const [error, setError] = useState(null);
 
@@ -24,7 +25,7 @@ export default function SignInPage({ setSession }) {
     setError(null);
     try {
       const { viewer } = await fetchViewer({ apiToken });
-      const session = {
+      const newSession = {
         apiToken,
         user: {
           login: viewer.login,
@@ -33,10 +34,10 @@ export default function SignInPage({ setSession }) {
           ),
         },
       };
-      if (session.user.orgLogins.includes('MetaMask')) {
+      if (newSession.user.orgLogins.includes('MetaMask')) {
         // TODO: This causes a "Can't perform a React state update on an
         // unmounted component" error if something breaks after sign-in
-        setSession(session);
+        setSession(newSession);
       } else {
         setError('This tool is only supported by MetaMaskians at the moment!');
       }
@@ -48,7 +49,13 @@ export default function SignInPage({ setSession }) {
     }
   };
 
-  return (
+  useEffect(() => {
+    if (session != null) {
+      router.replace(ROUTES.PULL_REQUESTS);
+    }
+  }, [session, router]);
+
+  return session == null ? (
     <>
       <div className="mb-4">
         <label className="block mb-1">
@@ -81,9 +88,7 @@ export default function SignInPage({ setSession }) {
         />
       </div>
     </>
-  );
+  ) : null;
 }
 
-SignInPage.propTypes = {
-  setSession: PropTypes.func.isRequired,
-};
+SignInPage.propTypes = {};

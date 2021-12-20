@@ -1,5 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import Head from 'next/head';
+import { Toaster } from 'react-hot-toast';
+import { NowProvider } from '../hooks/now';
+import { SessionProvider } from '../hooks/session';
 
 import '../styles/globals.css';
 
@@ -12,7 +16,25 @@ import '../styles/globals.css';
  * @returns {JSX.Element} The JSX used to render this component.
  */
 function App({ Component, pageProps }) {
-  return <Component {...pageProps} />;
+  return (
+    <SessionProvider>
+      <NowProvider>
+        <Head>
+          <title>Pull Request Dashboard</title>
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
+        <Component {...pageProps} />
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            error: {
+              duration: 10000,
+            },
+          }}
+        />
+      </NowProvider>
+    </SessionProvider>
+  );
 }
 
 App.propTypes = {
