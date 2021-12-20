@@ -1,5 +1,9 @@
 module.exports = {
-  content: ['./src/components/*.{js,jsx}', './src/pages/*.{js,jsx}'],
+  content: [
+    './src/components/*.{js,jsx}',
+    './src/pages/*.{js,jsx}',
+    './src/constants.js',
+  ],
   theme: {
     extend: {
       boxShadow: {
