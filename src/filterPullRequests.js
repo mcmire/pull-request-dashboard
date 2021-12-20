@@ -1,4 +1,4 @@
-import { every, intersection } from 'lodash';
+import { every, intersection, isEmpty } from 'lodash';
 
 /**
  * Filters the list of pull requests by the specified filters.
@@ -9,6 +9,10 @@ import { every, intersection } from 'lodash';
  * @returns {PullRequest[]} A filtered set of pull requests.
  */
 export default function filterPullRequests(pullRequests, filters) {
+  if (isEmpty(filters)) {
+    return [];
+  }
+
   return pullRequests.filter((pullRequest) => {
     return (
       !pullRequest.isDraft &&

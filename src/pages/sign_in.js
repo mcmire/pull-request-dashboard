@@ -50,7 +50,7 @@ export default function SignInPage() {
   };
 
   useEffect(() => {
-    if (session != null) {
+    if (session !== null) {
       router.replace(ROUTES.PULL_REQUESTS);
     }
   }, [session, router]);

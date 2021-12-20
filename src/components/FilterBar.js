@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import { isEqual, reduce } from 'lodash';
 import { FILTER_NAME_VALUES, FILTERS_BY_NAME } from '../constants';
+import areFiltersEqual from '../areFiltersEqual';
 import FilterDropdown from './FilterDropdown';
 import Button from './Button';
 
@@ -12,31 +12,19 @@ import Button from './Button';
  * @param {object} props - The props for this component.
  * @param {object} props.savedSelectedFilters - The current filters that are
  * being used to render the pull requests.
- * @param {Function} props.setSavedSelectedFilters - The function that will
+ * @param {Function} props.saveSelectedFilters - The function that will
  * ultimately refilter the list of pull requests.
  * @returns {JSX.Element} The JSX that renders this component.
  */
 export default function FilterBar({
   savedSelectedFilters,
-  setSavedSelectedFilters,
+  saveSelectedFilters,
 }) {
   const [unsavedSelectedFilters, setUnsavedSelectedFilters] =
     useState(savedSelectedFilters);
-  const isButtonDisabled = isEqual(
-    reduce(
-      savedSelectedFilters,
-      (obj, values, name) => {
-        return { ...obj, [name]: values.slice().sort() };
-      },
-      {},
-    ),
-    reduce(
-      unsavedSelectedFilters,
-      (obj, values, name) => {
-        return { ...obj, [name]: values.slice().sort() };
-      },
-      {},
-    ),
+  const isButtonDisabled = areFiltersEqual(
+    savedSelectedFilters,
+    unsavedSelectedFilters,
   );
 
   const updateFilterSelection = (filter, selection) => {
@@ -61,7 +49,7 @@ export default function FilterBar({
   };
 
   const onButtonClick = () => {
-    setSavedSelectedFilters(unsavedSelectedFilters);
+    saveSelectedFilters(unsavedSelectedFilters);
   };
 
   return (
@@ -71,7 +59,7 @@ export default function FilterBar({
           <FilterDropdown
             key={filterName}
             filter={FILTERS_BY_NAME[filterName]}
-            selectedValues={unsavedSelectedFilters[filterName]}
+            selectedValues={unsavedSelectedFilters[filterName] ?? []}
             updateFilterSelection={updateFilterSelection}
             selectAllFilterValues={selectAllFilterValues}
             unselectAllFilterValues={unselectAllFilterValues}
@@ -91,5 +79,5 @@ export default function FilterBar({
 
 FilterBar.propTypes = {
   savedSelectedFilters: PropTypes.object.isRequired,
-  setSavedSelectedFilters: PropTypes.func.isRequired,
+  saveSelectedFilters: PropTypes.func.isRequired,
 };
