@@ -21,6 +21,7 @@ const FILTERS_BY_NAME = {
       },
     ],
     optionLabelWhenAllOptionsSelected: 'All PRs',
+    optionLabelWhenNoOptionsSelected: 'No PRs',
     className: 'w-[175px]',
     isEachOptionExclusive: false,
   },
@@ -31,6 +32,7 @@ const FILTERS_BY_NAME = {
       value: name,
     })),
     optionLabelWhenAllOptionsSelected: 'Any status',
+    optionLabelWhenNoOptionsSelected: 'No status',
     className: 'w-[250px]',
     isEachOptionExclusive: false,
   },
@@ -73,10 +75,24 @@ export default function FilterBar({
     }
   }, [pullRequestsRequestStatus.type, updateFilters, selectedFilters]);
 
-  const updateFilterSelection = (filterName, selection) => {
+  const updateFilterSelection = (filter, selection) => {
     setSelectedFilters({
       ...selectedFilters,
-      [filterName]: selection,
+      [filter.name]: selection,
+    });
+  };
+
+  const selectAllFilterValues = (filter) => {
+    setSelectedFilters({
+      ...selectedFilters,
+      [filter.name]: filter.validOptions.map((option) => option.value),
+    });
+  };
+
+  const unselectAllFilterValues = (filter) => {
+    setSelectedFilters({
+      ...selectedFilters,
+      [filter.name]: [],
     });
   };
 
@@ -88,7 +104,9 @@ export default function FilterBar({
             key={filterName}
             filter={FILTERS_BY_NAME[filterName]}
             selection={selectedFilters[filterName]}
-            updateSelection={updateFilterSelection}
+            updateFilterSelection={updateFilterSelection}
+            selectAllFilterValues={selectAllFilterValues}
+            unselectAllFilterValues={unselectAllFilterValues}
           />
         );
       })}

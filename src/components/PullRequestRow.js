@@ -94,7 +94,10 @@ export default function PullRequest({ pullRequest }) {
       <DotFillIcon key={i} className="inline-block h-[1em]" />
     )).concat(
       times(MAX_PRIORITY_LEVEL - pullRequest.priorityLevel, (i) => (
-        <DotIcon key={i} className="inline-block h-[1em]" />
+        <DotIcon
+          key={pullRequest.priorityLevel + i}
+          className="inline-block h-[1em]"
+        />
       )),
     );
   };
