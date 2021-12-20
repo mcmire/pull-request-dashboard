@@ -46,3 +46,40 @@ export const COLUMN_NAMES = {
   PRIORITY_LEVEL: 'priorityLevel',
   STATUSES: FILTER_NAMES.STATUSES,
 };
+
+export const FILTERS_BY_NAME = {
+  [FILTER_NAMES.AUTHOR_CATEGORIES]: {
+    name: FILTER_NAMES.AUTHOR_CATEGORIES,
+    validOptions: [
+      { label: 'My PRs', value: AUTHOR_CATEGORY_NAMES.ME },
+      { label: "My Team's PRs", value: AUTHOR_CATEGORY_NAMES.MY_TEAM },
+      {
+        label: "Contributors' PRs",
+        value: AUTHOR_CATEGORY_NAMES.CONTRIBUTORS,
+      },
+    ],
+    optionLabelWhenAllOptionsSelected: 'All PRs',
+    optionLabelWhenNoOptionsSelected: 'No PRs',
+    className: 'w-[175px]',
+    isEachOptionExclusive: false,
+  },
+  [FILTER_NAMES.STATUSES]: {
+    name: FILTER_NAMES.STATUSES,
+    validOptions: STATUS_NAME_VALUES.map((name) => ({
+      label: STATUSES_BY_NAME[name],
+      value: name,
+    })),
+    optionLabelWhenAllOptionsSelected: 'Any status',
+    optionLabelWhenNoOptionsSelected: 'No status',
+    className: 'w-[250px]',
+    isEachOptionExclusive: false,
+  },
+};
+export const DEFAULT_SELECTED_FILTERS = {
+  [FILTER_NAMES.AUTHOR_CATEGORIES]: FILTERS_BY_NAME[
+    FILTER_NAMES.AUTHOR_CATEGORIES
+  ].validOptions.map((option) => option.value),
+  [FILTER_NAMES.STATUSES]: FILTERS_BY_NAME[
+    FILTER_NAMES.STATUSES
+  ].validOptions.map((option) => option.value),
+};

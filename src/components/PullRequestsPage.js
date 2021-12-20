@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
+import { DEFAULT_SELECTED_FILTERS } from '../constants';
 import getPullRequests from '../getPullRequests';
 import filterPullRequests from '../filterPullRequests';
 import sortPullRequests from '../sortPullRequests';
@@ -18,6 +19,9 @@ import SignOutButton from './SignOutButton';
  * @returns {JSX.Element} The JSX used to render this component.
  */
 export default function PullRequestsPage({ session, setSession }) {
+  const [savedSelectedFilters, setSavedSelectedFilters] = useState(
+    DEFAULT_SELECTED_FILTERS,
+  );
   const [pullRequestsRequestStatus, setPullRequestsRequestStatus] = useState({
     type: 'pending',
     data: {
@@ -28,21 +32,6 @@ export default function PullRequestsPage({ session, setSession }) {
   });
   const [hasLoadedPullRequestsOnce, setHasLoadedPullRequestsOnce] =
     useState(false);
-
-  // The useCallback here is necessary to prevent recursive state updates
-  const updateFilters = useCallback((filters) => {
-    setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
-      ...previousPullRequestsRequestStatus,
-      type: 'loaded',
-      data: {
-        ...previousPullRequestsRequestStatus.data,
-        filteredPullRequests: filterPullRequests(
-          previousPullRequestsRequestStatus.data.unfilteredPullRequests,
-          filters,
-        ),
-      },
-    }));
-  }, []);
 
   // The useCallback here is necessary to prevent recursive state updates
   const updateSorting = useCallback((sorting) => {
@@ -87,12 +76,29 @@ export default function PullRequestsPage({ session, setSession }) {
       });
   }, [session]);
 
+  // The useCallback here is necessary to prevent recursive state updates
+  useEffect(() => {
+    if (pullRequestsRequestStatus.type === 'loaded') {
+      setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
+        ...previousPullRequestsRequestStatus,
+        type: 'loaded',
+        data: {
+          ...previousPullRequestsRequestStatus.data,
+          filteredPullRequests: filterPullRequests(
+            previousPullRequestsRequestStatus.data.unfilteredPullRequests,
+            savedSelectedFilters,
+          ),
+        },
+      }));
+    }
+  }, [pullRequestsRequestStatus.type, savedSelectedFilters]);
+
   return (
     <>
       <div className="flex justify-between mb-4">
         <FilterBar
-          pullRequestsRequestStatus={pullRequestsRequestStatus}
-          updateFilters={updateFilters}
+          savedSelectedFilters={savedSelectedFilters}
+          setSavedSelectedFilters={setSavedSelectedFilters}
         />
         <SignOutButton setSession={setSession} />
       </div>

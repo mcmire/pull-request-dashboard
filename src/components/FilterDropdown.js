@@ -69,14 +69,14 @@ function buildLabelForSelectedValues(
  * @param {boolean} props.isOpen - Whether the menu is open.
  * @param {string[]} props.selectedValues - The values that should be marked as
  * selected for this filter.
+ * @param {bool} props.allValuesSelected - Whether all of the values are
+ * selected.
  * @param {Function} props.toggleSelectionOf - The function to call when a
  * value is toggled.
  * @param {Function} props.selectAllValues - The function to call when all
  * values are selected.
  * @param {Function} props.unselectAllValues - The function to call in order to
  * unselect all values.
- * @param {bool} props.allValuesSelected - Whether all of the values are
- * selected.
  * @returns {JSX.Element} The JSX that renders this component.
  */
 function FilterDropdownMenu({
@@ -88,6 +88,10 @@ function FilterDropdownMenu({
   selectAllValues,
   unselectAllValues,
 }) {
+  const onClick = (event) => {
+    event.stopPropagation();
+  };
+
   return (
     <div
       className={classnames(
@@ -105,15 +109,26 @@ function FilterDropdownMenu({
         filter.className,
         { hidden: !isOpen },
       )}
+      onClick={onClick}
     >
       <ul className="w-full">
         <li className="text-left mb-1">
           <a
             href="#"
             onClick={allValuesSelected ? unselectAllValues : selectAllValues}
-            className="block px-4 py-2 hover:bg-gray-100 flex items-center"
+            className="block px-4 py-2 hover:bg-gray-100 flex items-baseline"
           >
-            {allValuesSelected ? 'Unselect all' : 'Select all'}
+            {allValuesSelected ? (
+              <>
+                <CheckIcon className="w-[1em] h-[1em] mr-2 flex-none" />{' '}
+                <span>Unselect all</span>
+              </>
+            ) : (
+              <>
+                <div className="w-[1em] h-[1em] mr-2 flex-none" />
+                <span>Select all</span>
+              </>
+            )}
           </a>
         </li>
 
@@ -124,15 +139,17 @@ function FilterDropdownMenu({
           if (selectedValues.includes(value)) {
             if (filter.isEachOptionExclusive) {
               selectionIndicator = (
-                <DotFillIcon className="h-[1em] mr-2 flex-none" />
+                <DotFillIcon className="w-[1em] h-[1em] mr-2 flex-none" />
               );
             } else {
               selectionIndicator = (
-                <CheckIcon className="h-[1em] mr-2 flex-none" />
+                <CheckIcon className="w-[1em] h-[1em] mr-2 flex-none" />
               );
             }
           } else {
-            selectionIndicator = <div className="w-[1em] h-[1em] mr-2 block" />;
+            selectionIndicator = (
+              <div className="w-[1em] h-[1em] mr-2 flex-none" />
+            );
           }
 
           return (
@@ -140,7 +157,7 @@ function FilterDropdownMenu({
               <a
                 href="#"
                 onClick={() => toggleSelectionOf(value)}
-                className="block px-4 py-2 hover:bg-gray-100 flex items-center"
+                className="block px-4 py-2 hover:bg-gray-100 flex items-baseline"
               >
                 {selectionIndicator}
                 <span>{label}</span>
@@ -168,8 +185,7 @@ FilterDropdownMenu.propTypes = {
  *
  * @param {object} props - The props for this component.
  * @param {Filter} props.filter - Information about the filter.
- * @param {string | string[]} props.selection - The selected value or values for
- * the filter.
+ * @param {string[]} props.selectedValues - The selected values for the filter.
  * @param {Function} props.updateFilterSelection - The function to call when the
  * selection changes.
  * @param {Function} props.selectAllFilterValues - The function to call when all
@@ -180,17 +196,15 @@ FilterDropdownMenu.propTypes = {
  */
 export default function FilterDropdown({
   filter,
-  selection,
+  selectedValues,
   updateFilterSelection,
   selectAllFilterValues,
   unselectAllFilterValues,
 }) {
-  const selectedValues =
-    typeof selection === 'string' ? [selection] : selection;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const ref = useRef(null);
   const allValuesSelected = isEqual(
-    selectedValues.sort(),
+    selectedValues.slice().sort(),
     filter.validOptions.map((option) => option.value).sort(),
   );
   const labelForSelectedValues = buildLabelForSelectedValues(
@@ -202,6 +216,7 @@ export default function FilterDropdown({
   const closeMenu = useCallback(
     (event) => {
       if (isMenuOpen && !isDescendant(event.target, ref.current)) {
+        console.log('closing menu');
         setIsMenuOpen(false);
       }
     },
@@ -210,14 +225,14 @@ export default function FilterDropdown({
 
   const toggleSelectionOf = (value) => {
     if (filter.isEachOptionExclusive) {
-      updateFilterSelection(filter, value);
-    } else if (selection.includes(value)) {
+      updateFilterSelection(filter, [value]);
+    } else if (selectedValues.includes(value)) {
       updateFilterSelection(
         filter,
-        selection.filter((v) => v !== value),
+        selectedValues.filter((v) => v !== value),
       );
     } else {
-      updateFilterSelection(filter, [...selection, value]);
+      updateFilterSelection(filter, [...selectedValues, value]);
     }
   };
 
@@ -288,10 +303,7 @@ export default function FilterDropdown({
 
 FilterDropdown.propTypes = {
   filter: FilterType.isRequired,
-  selection: PropTypes.oneOfType([
-    PropTypes.arrayOf(PropTypes.string),
-    PropTypes.string,
-  ]).isRequired,
+  selectedValues: PropTypes.arrayOf(PropTypes.string).isRequired,
   updateFilterSelection: PropTypes.func.isRequired,
   selectAllFilterValues: PropTypes.func.isRequired,
   unselectAllFilterValues: PropTypes.func.isRequired,
