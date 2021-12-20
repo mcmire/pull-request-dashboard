@@ -37,7 +37,9 @@ const FILTERS_BY_NAME = {
 };
 
 const initialSelectedFilters = {
-  [FILTER_NAMES.AUTHOR_CATEGORIES]: [AUTHOR_CATEGORY_NAMES.MY_TEAM],
+  [FILTER_NAMES.AUTHOR_CATEGORIES]: FILTERS_BY_NAME[
+    FILTER_NAMES.AUTHOR_CATEGORIES
+  ].validOptions.map((option) => option.value),
   [FILTER_NAMES.STATUSES]: FILTERS_BY_NAME[
     FILTER_NAMES.STATUSES
   ].validOptions.map((option) => option.value),

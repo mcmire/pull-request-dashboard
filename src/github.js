@@ -76,6 +76,15 @@ export async function fetchPullRequests({ apiToken, after = null }) {
                   }
                 }
               }
+              closingIssuesReferences(first: 5) {
+                nodes {
+                  labels(first: 10) {
+                    nodes {
+                      name
+                    }
+                  }
+                }
+              }
               commits(last: 1) {
                 nodes {
                   commit {
@@ -83,7 +92,6 @@ export async function fetchPullRequests({ apiToken, after = null }) {
                     status {
                       contexts {
                         state
-                        context
                       }
                     }
                   }

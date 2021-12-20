@@ -86,6 +86,19 @@ export default function PullRequest({ pullRequest }) {
   )} ago`;
   const color = determineColorForCreatedAt(now, pullRequest.createdAt);
 
+  const renderPriorityLevel = () => {
+    if (pullRequest.priorityLevel === 0) {
+      return '—';
+    }
+    return times(pullRequest.priorityLevel, (i) => (
+      <DotFillIcon key={i} className="inline-block h-[1em]" />
+    )).concat(
+      times(MAX_PRIORITY_LEVEL - pullRequest.priorityLevel, (i) => (
+        <DotIcon key={i} className="inline-block h-[1em]" />
+      )),
+    );
+  };
+
   return (
     <tr className="group">
       <Cell>
@@ -131,14 +144,7 @@ export default function PullRequest({ pullRequest }) {
           {approximateCreatedAt}
         </time>
       </Cell>
-      <Cell className="w-[6em]">
-        {times(pullRequest.priorityLevel, (i) => (
-          <DotFillIcon key={i} className="inline-block h-[1em]" />
-        ))}
-        {times(MAX_PRIORITY_LEVEL - pullRequest.priorityLevel, (i) => (
-          <DotIcon key={i} className="inline-block h-[1em]" />
-        ))}
-      </Cell>
+      <Cell className="w-[6em]">{renderPriorityLevel()}</Cell>
       <Cell>
         <div className="flex flex-row items-center">
           {pullRequest.statuses.map((status, i) => {

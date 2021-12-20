@@ -1,4 +1,4 @@
-import { intersection } from 'lodash';
+import { intersection, uniq } from 'lodash';
 import {
   AUTHOR_CATEGORY_NAMES,
   COLUMN_NAMES,
@@ -58,7 +58,7 @@ function determineAuthorCategories(author, currentUser) {
 }
 
 /**
- * Builds the `statuses` for a PullRequest.
+ * Determines the `statuses` for a PullRequest.
  *
  * @param {GitHubPullRequestNode} pullRequestNode - A PullRequestNode object
  * obtained from the GitHub GraphQL API.
@@ -102,6 +102,33 @@ function determineStatuses(pullRequestNode) {
 }
 
 /**
+ * Determines the `priorityLevel` for a PullRequest.
+ *
+ * @param {GitHubPullRequestNode} pullRequestNode - A PullRequestNode object
+ * obtained from the GitHub GraphQL API.
+ * @returns {number} The priority level from 0 to 5.
+ */
+function determinePriorityLevel(pullRequestNode) {
+  const issueReferenceLabelNames = uniq(
+    pullRequestNode.closingIssuesReferences.nodes.flatMap((issueNode) =>
+      issueNode.labels.nodes.map((label) => label.name),
+    ),
+  );
+
+  if (issueReferenceLabelNames.includes('Sev0-urgent')) {
+    return 4;
+  } else if (issueReferenceLabelNames.includes('Sev1-high')) {
+    return 3;
+  } else if (issueReferenceLabelNames.includes('Sev2-normal')) {
+    return 2;
+  } else if (issueReferenceLabelNames.includes('Sev3-low')) {
+    return 1;
+  }
+
+  return 0;
+}
+
+/**
  * Builds an object that can be passed to {@link PullRequestRow} to render a
  * pull request.
  *
@@ -121,8 +148,8 @@ export default function buildPullRequest(pullRequestNode, currentUser) {
   const author = buildAuthor(pullRequestAuthor);
   const authorCategories = determineAuthorCategories(author, currentUser);
   const statuses = determineStatuses(pullRequestNode);
+  const priorityLevel = determinePriorityLevel(pullRequestNode);
   const createdAt = new Date(Date.parse(pullRequestNode.publishedAt));
-  const priorityLevel = 1;
   const labelNames = pullRequestNode.labels.nodes.map((label) => label.name);
 
   return {
