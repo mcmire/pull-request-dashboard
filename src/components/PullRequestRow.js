@@ -8,7 +8,7 @@ import {
   formatDistanceStrict as formatDateDistanceStrict,
 } from 'date-fns';
 import { format as formatDate } from 'date-fns-tz';
-import { STATUSES_BY_NAME } from '../constants';
+import { STATUS_NAMES, STATUSES_BY_NAME } from '../constants';
 import { TimeContext } from '../contexts/time';
 import MetamaskIcon from '../images/metamask-fox.svg';
 import DotIcon from '../images/icons/octicons/dot-16.svg';
@@ -154,9 +154,12 @@ export default function PullRequest({ pullRequest }) {
                 className={classnames(
                   'rounded-full text-white py-1.5 px-2.5 text-xs whitespace-nowrap',
                   {
-                    'bg-black': status === 'isBlocked',
-                    'bg-red-500': status !== 'isReadyToMerge',
-                    'bg-green-500': status === 'isReadyToMerge',
+                    'bg-black': status === STATUS_NAMES.IS_BLOCKED,
+                    'bg-red-500':
+                      status !== STATUS_NAMES.IS_READY_TO_MERGE &&
+                      status !== STATUS_NAMES.NEEDS_REVIEW,
+                    'bg-green-500': status === STATUS_NAMES.IS_READY_TO_MERGE,
+                    'bg-blue-500': status === STATUS_NAMES.NEEDS_REVIEW,
                     'mr-2': i < pullRequest.statuses.length - 1,
                   },
                 )}
