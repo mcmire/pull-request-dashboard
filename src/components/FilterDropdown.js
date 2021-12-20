@@ -216,7 +216,6 @@ export default function FilterDropdown({
   const closeMenu = useCallback(
     (event) => {
       if (isMenuOpen && !isDescendant(event.target, ref.current)) {
-        console.log('closing menu');
         setIsMenuOpen(false);
       }
     },
