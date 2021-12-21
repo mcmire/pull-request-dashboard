@@ -1,4 +1,5 @@
-import { sortBy } from 'lodash';
+import { partition, sortBy } from 'lodash';
+import { COLUMN_NAMES } from './constants';
 
 /**
  * Sorts the given pull requests.
@@ -11,11 +12,20 @@ import { sortBy } from 'lodash';
  * @returns {PullRequest[]} The sorted pull requests.
  */
 export default function sortPullRequests(pullRequests, { column, reverse }) {
-  const sortedPullRequests = sortBy(pullRequests, column);
+  const [pullRequestsWithPriorityLevel, pullRequestsWithoutPriorityLevel] =
+    column === COLUMN_NAMES.PRIORITY_LEVEL
+      ? partition(pullRequests, (pullRequest) =>
+          Boolean(pullRequest.priorityLevel),
+        )
+      : [pullRequests, []];
+  const sortedPullRequests = sortBy(pullRequestsWithPriorityLevel, [
+    column,
+    'number',
+  ]);
 
   if (reverse) {
     sortedPullRequests.reverse();
   }
 
-  return sortedPullRequests;
+  return sortedPullRequests.concat(pullRequestsWithoutPriorityLevel);
 }
