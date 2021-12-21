@@ -18,6 +18,8 @@ import sortPullRequests from '../sortPullRequests';
 import areFiltersEqual from '../areFiltersEqual';
 import areSortsEqual from '../areSortsEqual';
 
+let lastTimeRouterPushCalled;
+
 /**
  * Extracts filters and sorts from the given query object, leaving the remaining
  * query parameters.
@@ -29,8 +31,8 @@ import areSortsEqual from '../areSortsEqual';
  */
 function extractViewModifiersFromQuery(query) {
   const rest = { ...query };
-  const filters = {};
-  const sorts = {};
+  let filters = {};
+  let sorts;
 
   FILTER_NAME_VALUES.forEach((filterName) => {
     const value = rest[`filter_${filterName}`];
@@ -42,6 +44,10 @@ function extractViewModifiersFromQuery(query) {
     }
   });
 
+  if (Object.values(filters).flat().length === 0) {
+    filters = undefined;
+  }
+
   SORT_FLAG_VALUES.forEach((sortFlag) => {
     const value = rest[`sort_${sortFlag}`];
     if (value !== undefined) {
@@ -50,6 +56,10 @@ function extractViewModifiersFromQuery(query) {
         normalizedValue = true;
       } else if (value === 'false') {
         normalizedValue = false;
+      }
+
+      if (sorts === undefined) {
+        sorts = {};
       }
       sorts[sortFlag] = normalizedValue;
       delete rest[`sort_${sortFlag}`];
@@ -148,6 +158,23 @@ export default function PullRequestsPage() {
           newViewModifiers.sorts,
         )
       ) {
+        if (
+          lastTimeRouterPushCalled != null &&
+          new Date().getTime() - lastTimeRouterPushCalled.getTime() <= 200
+        ) {
+          console.log(
+            'newViewModifiers',
+            newViewModifiers,
+            'existingViewModifiersAndRest',
+            existingViewModifiersAndRest,
+            'newQuery',
+            newQuery,
+          );
+          throw new Error(
+            'router.push() was already called a split-second ago. You may be in an infinite loop.',
+          );
+        }
+        lastTimeRouterPushCalled = new Date();
         await router.push({ query: newQuery }, null, { shallow: true });
       }
     };
