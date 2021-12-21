@@ -25,8 +25,8 @@ function buildAuthor(pullRequestAuthor) {
   }
 
   return {
-    login: null,
-    avatarUrl: 'http://identicon.net/img/identicon.png',
+    login: 'ghost',
+    avatarUrl: 'https://avatars.githubusercontent.com/u/10137?v=4',
     orgLogins: [],
   };
 }
