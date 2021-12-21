@@ -114,18 +114,16 @@ export default function PullRequest({ pullRequest }) {
       </Cell>
       <Cell align="top">
         <div className="inline-block pt-[0.28em]">
+          {/* eslint-disable @next/next/no-img-element */}
           <Tippy
             content={
               <div className="text-[0.6rem]">{pullRequest.author.login}</div>
             }
           >
-            {/* eslint-disable @next/next/no-img-element */}
             <img
               src={pullRequest.author.avatarUrl}
-              className="rounded-full border border-gray-300 mr-[-0.5em]"
+              className="rounded-full w-[2em] border border-gray-100 mr-[-0.5em]"
               alt={pullRequest.author.login}
-              width={30}
-              height={30}
             />
           </Tippy>
         </div>
