@@ -7,6 +7,7 @@ const SHOULD_CACHE = true;
 const SHOULD_RESET_CACHE = false;
 const CACHE_KEY = 'fetchPullRequestsRequest';
 const CACHE_MAX_AGE = 60 * 60 * 1000; // 1 hour
+const RESET_CACHE_AFTER = new Date(1640116719424);
 let lastTimeFetched;
 
 /**
@@ -29,6 +30,7 @@ function getPullRequestsFromCache(params) {
     const time = new Date(cachedRequest.time);
 
     if (
+      time >= RESET_CACHE_AFTER &&
       isEqual(cachedRequest.params, params) &&
       new Date().getTime() - time <= CACHE_MAX_AGE
     ) {
