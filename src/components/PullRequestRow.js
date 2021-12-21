@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { interpolateRgb, piecewise } from 'd3-interpolate';
 import colors from 'tailwindcss/colors';
+import Tippy, { Box, Arrow } from '@tippyjs/react';
 import {
   add as addDate,
   formatDistanceStrict as formatDateDistanceStrict,
@@ -15,6 +16,8 @@ import DotIcon from '../images/icons/octicons/dot-16.svg';
 import DotFillIcon from '../images/icons/octicons/dot-fill-16.svg';
 import { times } from '../util';
 import { PullRequestType } from './types';
+
+import 'tippy.js/dist/tippy.css';
 
 const MAX_PRIORITY_LEVEL = 5;
 
@@ -110,13 +113,19 @@ export default function PullRequest({ pullRequest }) {
         ) : null}
       </Cell>
       <Cell align="top">
-        <div className="inline-block pt-[0.07em]">
+        <div className="inline-block pt-[0.28em]">
           {/* eslint-disable @next/next/no-img-element */}
-          <img
-            src={pullRequest.author.avatarUrl}
-            className="rounded-full w-[2em] border border-white mr-[-0.5em]"
-            alt={pullRequest.author.login}
-          />
+          <Tippy
+            content={
+              <div className="text-[0.6rem]">{pullRequest.author.login}</div>
+            }
+          >
+            <img
+              src={pullRequest.author.avatarUrl}
+              className="rounded-full w-[2em] border border-gray-100 mr-[-0.5em]"
+              alt={pullRequest.author.login}
+            />
+          </Tippy>
         </div>
       </Cell>
       <Cell className="text-gray-500">
