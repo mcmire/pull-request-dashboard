@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import TriangleDownIcon from '../images/icons/octicons/triangle-down-16.svg';
 import TriangleUpIcon from '../images/icons/octicons/triangle-up-16.svg';
 import { COLUMN_NAMES } from '../constants';
 import { PullRequestType } from './types';
 import PullRequestRow from './PullRequestRow';
-
-const initialSorting = { column: COLUMN_NAMES.CREATED_AT, reverse: false };
 
 /**
  * A column header.
@@ -15,29 +13,28 @@ const initialSorting = { column: COLUMN_NAMES.CREATED_AT, reverse: false };
  * @param {"createdAt" | "priorityLevel" | "statuses"} props.name - The short
  * name of this column.
  * @param {string} props.label - The displayable name of this column.
- * @param {boolean} props.currentSorting - Information about the current sorting
- * setting.
- * @param {Function} props.updateSortingOn - A function to re-render the table
+ * @param {object} props.savedSorts - Information about how the table should be
+ * sorted.
+ * @param {Function} props.toggleSortOn - A function to re-render the table
  * sorted by this column.
  * @returns {JSX.Element} The JSX that renders this component.
  */
-function ColumnHeader({ name, label, currentSorting, updateSortingOn }) {
-  const isCurrentSortColumn =
-    currentSorting != null && currentSorting.column === name;
+function ColumnHeader({ name, label, savedSorts, toggleSortOn }) {
+  const isCurrentSortColumn = savedSorts != null && savedSorts.column === name;
   return (
     <th className="text-left text-xs font-normal text-gray-500 border-b py-1">
-      {updateSortingOn != null ? (
+      {toggleSortOn != null ? (
         <a
           href="#"
           onClick={(event) => {
             event.preventDefault();
-            updateSortingOn(name);
+            toggleSortOn(name);
           }}
         >
           <span className="inline-block align-middle">{label}</span>
           {isCurrentSortColumn
             ? React.createElement(
-                currentSorting.reverse ? TriangleDownIcon : TriangleUpIcon,
+                savedSorts.reverse ? TriangleDownIcon : TriangleUpIcon,
                 {
                   className: 'h-[1.5em] inline-block align-middle',
                 },
@@ -54,11 +51,11 @@ function ColumnHeader({ name, label, currentSorting, updateSortingOn }) {
 ColumnHeader.propTypes = {
   name: PropTypes.oneOf(Object.values(COLUMN_NAMES)),
   label: PropTypes.string,
-  currentSorting: PropTypes.shape({
+  savedSorts: PropTypes.shape({
     column: PropTypes.oneOf(Object.values(COLUMN_NAMES)).isRequired,
     reverse: PropTypes.bool.isRequired,
   }),
-  updateSortingOn: PropTypes.func,
+  toggleSortOn: PropTypes.func,
 };
 
 /**
@@ -70,30 +67,23 @@ ColumnHeader.propTypes = {
  * requests.
  * @param {boolean} props.hasLoadedPullRequestsOnce - Whether or not the
  * first request to fetch pull requests has been made.
- * @param {Function} props.updateSorting - A function to reorder the list
+ * @param {object} props.savedSorts - Information about how the table should be
+ * sorted.
+ * @param {Function} props.saveSorts - A function to reorder the list
  * of pull requests.
  * @returns {JSX.Element} The JSX that renders this component.
  */
 export default function PullRequestsTable({
   pullRequestsRequestStatus,
   hasLoadedPullRequestsOnce,
-  updateSorting,
+  savedSorts,
+  saveSorts,
 }) {
-  const [sorting, setSorting] = useState(initialSorting);
-  useEffect(() => {
-    // TODO: Why this should wait for DashboardPage to load the pull requests?
-    // Seems like that's the responsibility of DashboardPage.
-    if (pullRequestsRequestStatus.type === 'loaded') {
-      updateSorting(sorting);
-    }
-  }, [pullRequestsRequestStatus.type, updateSorting, sorting]);
-
-  const updateSortingOn = (column) => {
-    const newSorting = {
+  const toggleSortOn = (column) => {
+    saveSorts({
       column,
-      reverse: sorting.column === column ? !sorting.reverse : false,
-    };
-    setSorting(newSorting);
+      reverse: savedSorts.column === column ? !savedSorts.reverse : false,
+    });
   };
 
   const renderTbody = () => {
@@ -144,20 +134,20 @@ export default function PullRequestsTable({
           <ColumnHeader
             label="Time"
             name={COLUMN_NAMES.CREATED_AT}
-            currentSorting={sorting}
-            updateSortingOn={updateSortingOn}
+            savedSorts={savedSorts}
+            toggleSortOn={toggleSortOn}
           />
           <ColumnHeader
             label="Priority"
             name={COLUMN_NAMES.PRIORITY_LEVEL}
-            currentSorting={sorting}
-            updateSortingOn={updateSortingOn}
+            savedSorts={savedSorts}
+            toggleSortOn={toggleSortOn}
           />
           <ColumnHeader
             label="Statuses"
             name={COLUMN_NAMES.STATUSES}
-            currentSorting={sorting}
-            updateSortingOn={updateSortingOn}
+            savedSorts={savedSorts}
+            toggleSortOn={toggleSortOn}
           />
         </tr>
       </thead>
@@ -175,5 +165,9 @@ PullRequestsTable.propTypes = {
     errorMessage: PropTypes.string,
   }),
   hasLoadedPullRequestsOnce: PropTypes.bool.isRequired,
-  updateSorting: PropTypes.func.isRequired,
+  savedSorts: PropTypes.shape({
+    column: PropTypes.oneOf(Object.values(COLUMN_NAMES)).isRequired,
+    reverse: PropTypes.bool.isRequired,
+  }).isRequired,
+  saveSorts: PropTypes.func.isRequired,
 };

@@ -1,9 +1,11 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
-import { isEmpty } from 'lodash';
+import { isEmpty, reduce } from 'lodash';
 import {
   DEFAULT_SELECTED_FILTERS,
+  DEFAULT_SORTS,
   FILTER_NAME_VALUES,
+  SORT_FLAG_VALUES,
   ROUTES,
 } from '../constants';
 import FilterBar from '../components/FilterBar';
@@ -14,28 +16,91 @@ import getPullRequests from '../getPullRequests';
 import filterPullRequests from '../filterPullRequests';
 import sortPullRequests from '../sortPullRequests';
 import areFiltersEqual from '../areFiltersEqual';
+import areSortsEqual from '../areSortsEqual';
 
 /**
- * Extracts filters from the given query object, leaving the remaining query
- * parameters.
+ * Extracts filters and sorts from the given query object, leaving the remaining
+ * query parameters.
  *
  * @param {object} query - The query object as obtained via `router.query`.
- * @returns {object} An object, where `filters` are the aforementioned filters
- * and `rest` is the remaining query parameters.
+ * @returns {object} An object, where `filters` are the filter-related
+ * parameters, `sorts` are the sort-related parameters, and `rest` is everything
+ * else.
  */
-function extractFiltersFromQuery(query) {
+function extractViewModifiersFromQuery(query) {
+  const rest = { ...query };
   const filters = {};
-  const rest = {};
+  const sorts = {};
 
-  for (const [key, value] of Object.entries(query)) {
-    if (FILTER_NAME_VALUES.includes(key)) {
-      filters[key] = typeof value === 'string' ? [value] : value;
+  FILTER_NAME_VALUES.forEach((filterName) => {
+    const value = rest[`filter_${filterName}`];
+    if (value !== undefined) {
+      filters[filterName] = typeof value === 'string' ? [value] : value;
+      delete rest[`filter_${filterName}`];
     } else {
-      rest[key] = value;
+      filters[filterName] = [];
     }
-  }
+  });
 
-  return { filters, rest };
+  SORT_FLAG_VALUES.forEach((sortFlag) => {
+    const value = rest[`sort_${sortFlag}`];
+    if (value !== undefined) {
+      let normalizedValue = value;
+      if (value === 'true') {
+        normalizedValue = true;
+      } else if (value === 'false') {
+        normalizedValue = false;
+      }
+      sorts[sortFlag] = normalizedValue;
+      delete rest[`sort_${sortFlag}`];
+    }
+  });
+
+  return { filters, sorts, rest };
+}
+
+/**
+ * Builds a query object from existing parameters, adding the given view
+ * modifier parameters. Filter parameters are prefixed with `filter_` and sort
+ * parameters are prefixed with `sort_`.
+ *
+ * @param {object} viewModifiers - The set of view modifiers (an object
+ * containing `filters` and/or `sorts` keys).
+ * @param {object} [viewModifiers.filters] - The new filters that are being set.
+ * @param {object} [viewModifiers.sorts] - The new sorts that are being set.
+ * @param {object} query - The existing query parameters.
+ * @param {object} query.filters - The existing filters.
+ * @param {object} query.sorts - The existing sorts.
+ * @param {object} query.rest - The remaining parameters that aren't filter- or
+ * sort-related.
+ * @returns {object} A combined set of query parameters with view modifier
+ * information.
+ */
+function buildQueryWithViewModifiers(
+  { filters: newFilters = {}, sorts: newSorts = {} },
+  { filters: oldFilters, sorts: oldSorts, rest },
+) {
+  const serializedFilters = reduce(
+    { ...oldFilters, ...newFilters },
+    (obj, value, key) => {
+      return { ...obj, [`filter_${key}`]: value };
+    },
+    {},
+  );
+
+  const serializedSorts = reduce(
+    { ...oldSorts, ...newSorts },
+    (obj, value, key) => {
+      return { ...obj, [`sort_${key}`]: value };
+    },
+    {},
+  );
+
+  return {
+    ...rest,
+    ...serializedFilters,
+    ...serializedSorts,
+  };
 }
 
 /**
@@ -46,7 +111,7 @@ function extractFiltersFromQuery(query) {
 export default function PullRequestsPage() {
   const router = useRouter();
   const { session } = useSession();
-  const [savedSelectedFilters, setSavedSelectedFilters] = useState(null);
+  const [savedViewModifiers, setSavedViewModifiers] = useState(null);
   const [pullRequestsRequestStatus, setPullRequestsRequestStatus] = useState({
     type: 'pending',
     data: {
@@ -58,36 +123,39 @@ export default function PullRequestsPage() {
   const [hasLoadedPullRequestsOnce, setHasLoadedPullRequestsOnce] =
     useState(false);
 
-  // The useCallback here is necessary to prevent recursive state updates
-  const updateSorting = useCallback((sorting) => {
-    setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
-      ...previousPullRequestsRequestStatus,
-      type: 'loaded',
-      data: {
-        ...previousPullRequestsRequestStatus.data,
-        filteredPullRequests: sortPullRequests(
-          previousPullRequestsRequestStatus.data.filteredPullRequests,
-          sorting,
-        ),
-      },
-    }));
-  }, []);
-
-  const saveSelectedFilters = useCallback(
-    (filters) => {
-      const { filters: filtersFromQuery, rest } = extractFiltersFromQuery(
+  const saveViewModifiers = useMemo(() => {
+    return async (newViewModifiers) => {
+      const existingViewModifiersAndRest = extractViewModifiersFromQuery(
         router.query,
       );
+      const newQuery = buildQueryWithViewModifiers(
+        newViewModifiers,
+        existingViewModifiersAndRest,
+      );
 
-      if (!areFiltersEqual(filtersFromQuery, filters)) {
-        const query = { ...rest, ...filters };
-        router.push({ query }, null, { shallow: true });
+      setSavedViewModifiers((previousSavedViewModifiers) => ({
+        ...previousSavedViewModifiers,
+        ...newViewModifiers,
+      }));
+
+      if (
+        !areFiltersEqual(
+          existingViewModifiersAndRest.filters,
+          newViewModifiers.filters,
+        ) ||
+        !areSortsEqual(
+          existingViewModifiersAndRest.sorts,
+          newViewModifiers.sorts,
+        )
+      ) {
+        await router.push({ query: newQuery }, null, { shallow: true });
       }
+    };
+  }, [router]);
 
-      setSavedSelectedFilters(filters);
-    },
-    [router],
-  );
+  const saveSelectedFilters = (filters) => saveViewModifiers({ filters });
+
+  const saveSorts = (sorts) => saveViewModifiers({ sorts });
 
   useEffect(() => {
     if (session === null) {
@@ -127,20 +195,26 @@ export default function PullRequestsPage() {
 
   // The useCallback here is necessary to prevent recursive state updates
   useEffect(() => {
-    if (pullRequestsRequestStatus.type === 'loaded') {
+    if (
+      pullRequestsRequestStatus.type === 'loaded' &&
+      savedViewModifiers != null
+    ) {
       setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
         ...previousPullRequestsRequestStatus,
         type: 'loaded',
         data: {
           ...previousPullRequestsRequestStatus.data,
-          filteredPullRequests: filterPullRequests(
-            previousPullRequestsRequestStatus.data.unfilteredPullRequests,
-            savedSelectedFilters,
+          filteredPullRequests: sortPullRequests(
+            filterPullRequests(
+              previousPullRequestsRequestStatus.data.unfilteredPullRequests,
+              savedViewModifiers.filters,
+            ),
+            savedViewModifiers.sorts,
           ),
         },
       }));
     }
-  }, [pullRequestsRequestStatus.type, savedSelectedFilters]);
+  }, [pullRequestsRequestStatus.type, savedViewModifiers]);
 
   useEffect(() => {
     const url = new URL(
@@ -152,22 +226,19 @@ export default function PullRequestsPage() {
     // default filters from being used if this is the first time this hook is
     // run
     if (isEmpty(url.searchParams.toString()) || !isEmpty(router.query)) {
-      const { filters: filtersFromQuery } = extractFiltersFromQuery(
-        router.query,
-      );
-      if (isEmpty(filtersFromQuery)) {
-        saveSelectedFilters(DEFAULT_SELECTED_FILTERS);
-      } else {
-        saveSelectedFilters(filtersFromQuery);
-      }
+      const { filters, sorts } = extractViewModifiersFromQuery(router.query);
+      const newFilters =
+        filters === undefined ? DEFAULT_SELECTED_FILTERS : filters;
+      const newSorts = sorts === undefined ? DEFAULT_SORTS : sorts;
+      saveViewModifiers({ filters: newFilters, sorts: newSorts });
     }
-  }, [router, saveSelectedFilters]);
+  }, [router, saveViewModifiers]);
 
-  return session == null || savedSelectedFilters == null ? null : (
+  return session == null || savedViewModifiers == null ? null : (
     <>
       <div className="flex justify-between mb-4">
         <FilterBar
-          savedSelectedFilters={savedSelectedFilters}
+          savedSelectedFilters={savedViewModifiers.filters}
           saveSelectedFilters={saveSelectedFilters}
         />
         <SignOutButton />
@@ -175,7 +246,8 @@ export default function PullRequestsPage() {
       <PullRequestsTable
         pullRequestsRequestStatus={pullRequestsRequestStatus}
         hasLoadedPullRequestsOnce={hasLoadedPullRequestsOnce}
-        updateSorting={updateSorting}
+        savedSorts={savedViewModifiers.sorts}
+        saveSorts={saveSorts}
       />
     </>
   );

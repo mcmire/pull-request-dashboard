@@ -84,6 +84,16 @@ export const DEFAULT_SELECTED_FILTERS = {
   ].validOptions.map((option) => option.value),
 };
 
+export const SORT_FLAGS = {
+  COLUMN: 'column',
+  REVERSE: 'reverse',
+};
+export const SORT_FLAG_VALUES = [SORT_FLAGS.COLUMN, SORT_FLAGS.REVERSE];
+export const DEFAULT_SORTS = {
+  [SORT_FLAGS.COLUMN]: COLUMN_NAMES.CREATED_AT,
+  [SORT_FLAGS.REVERSE]: false,
+};
+
 export const ROUTES = {
   ROOT: '/',
   PULL_REQUESTS: '/pull_requests',
