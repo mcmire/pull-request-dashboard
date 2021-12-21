@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { interpolateRgb, piecewise } from 'd3-interpolate';
 import colors from 'tailwindcss/colors';
-import Tippy, { Box, Arrow } from '@tippyjs/react';
+import Tippy from '@tippyjs/react';
 import {
   add as addDate,
   formatDistanceStrict as formatDateDistanceStrict,
