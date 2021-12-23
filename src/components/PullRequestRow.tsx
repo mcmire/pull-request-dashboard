@@ -1,5 +1,5 @@
 import React from 'react';
-import PropTypes from 'prop-types';
+import { times } from 'lodash';
 import classnames from 'classnames';
 import { interpolateRgb, piecewise } from 'd3-interpolate';
 import colors from 'tailwindcss/colors';
@@ -14,8 +14,8 @@ import { useNow } from '../hooks/now';
 import MetamaskIcon from '../images/metamask-fox.svg';
 import DotIcon from '../images/icons/octicons/dot-16.svg';
 import DotFillIcon from '../images/icons/octicons/dot-fill-16.svg';
-import { times } from '../util';
-import { PullRequestType } from './types';
+import { PullRequest } from '../types2';
+import { isDarkModeEnabled } from '../util';
 
 import 'tippy.js/dist/tippy.css';
 
@@ -25,17 +25,18 @@ const MAX_PRIORITY_LEVEL = 5;
  * Calculates the color for the pull request's time. This color is a gradient,
  * starting out as black and becoming redder as the time approaches a year ago.
  *
- * @param {Date} now - The current time.
- * @param {Date} createdAt - The pull request's time.
- * @returns {string} A hex color.
+ * @param now - The current time.
+ * @param createdAt - The pull request's time.
+ * @returns A hex color.
  */
-function determineColorForCreatedAt(now, createdAt) {
+function determineColorForCreatedAt(now: Date, createdAt: Date): string {
   const oneYear = addDate(now, { years: 1 }).getTime() - now.getTime();
   const distanceFromNow = now.getTime() - createdAt.getTime();
   const normalizedCreatedAt =
     distanceFromNow >= oneYear ? 1 : distanceFromNow / oneYear;
+  const startingColor = isDarkModeEnabled() ? colors.neutral[400] : '#000';
   return piecewise(interpolateRgb.gamma(2.2), [
-    '#000',
+    startingColor,
     colors.orange[500],
     colors.red[500],
   ])(normalizedCreatedAt);
@@ -44,18 +45,27 @@ function determineColorForCreatedAt(now, createdAt) {
 /**
  * Renders a cell.
  *
- * @param {object} props - The props for this component.
- * @param {string} props.className - CSS classes.
- * @param {string} props.align - How to vertically-align the contents of the
- * cell.
- * @param {JSX.Element} props.children - The children.
- * @returns {JSX.Element} The JSX that renders this component.
+ * @param props - The props for this component.
+ * @param props.className - CSS classes.
+ * @param props.align - How to vertically-align the contents of the cell.
+ * @param props.children - The children.
+ * @returns The JSX that renders this component.
  */
-function Cell({ className, align = 'top', children, ...rest }) {
+function Cell({
+  className = '',
+  align = 'top',
+  children,
+  ...rest
+}: {
+  className?: string;
+  align?: 'top' | 'bottom' | 'middle';
+  children?: React.ReactNode;
+  [prop: string]: any;
+}): JSX.Element {
   return (
     <td
       className={classnames(
-        `pr-2 py-2 border-b group-hover:bg-gray-100 align-${align}`,
+        `pr-2 py-2 border-b dark:border-neutral-600 group-hover:bg-neutral-100 dark:group-hover:bg-neutral-700 align-${align}`,
         className,
       )}
       {...rest}
@@ -65,20 +75,18 @@ function Cell({ className, align = 'top', children, ...rest }) {
   );
 }
 
-Cell.propTypes = {
-  className: PropTypes.string,
-  align: PropTypes.string,
-  children: PropTypes.node,
-};
-
 /**
  * The component that represents a pull request in the search results.
  *
- * @param {object} props - The props for this component.
- * @param {PullRequest} props.pullRequest - The pull request to render.
- * @returns {JSX.Element} The JSX that renders this component.
+ * @param props - The props for this component.
+ * @param props.pullRequest - The pull request to render.
+ * @returns The JSX that renders this component.
  */
-export default function PullRequest({ pullRequest }) {
+export default function PullRequestRow({
+  pullRequest,
+}: {
+  pullRequest: PullRequest;
+}) {
   const now = useNow();
   const approximateCreatedAt = `${formatDateDistanceStrict(
     now,
@@ -91,7 +99,7 @@ export default function PullRequest({ pullRequest }) {
 
   const renderPriorityLevel = () => {
     if (pullRequest.priorityLevel === 0) {
-      return <span className="text-gray-300">—</span>;
+      return <span className="text-neutral-300">—</span>;
     }
     return times(pullRequest.priorityLevel, (i) => (
       <DotFillIcon key={i} className="inline-block h-[1em]" />
@@ -122,13 +130,13 @@ export default function PullRequest({ pullRequest }) {
           >
             <img
               src={pullRequest.author.avatarUrl}
-              className="rounded-full w-[2em] border border-gray-100 mr-[-0.5em]"
+              className="rounded-full w-[2em] border border-neutral-100 mr-[-0.5em]"
               alt={pullRequest.author.login}
             />
           </Tippy>
         </div>
       </Cell>
-      <Cell className="text-gray-500">
+      <Cell className="text-neutral-500">
         <a
           href={pullRequest.url}
           target="_blank"
@@ -173,6 +181,7 @@ export default function PullRequest({ pullRequest }) {
                     'bg-green-500': status === STATUS_NAMES.IS_READY_TO_MERGE,
                     'bg-blue-500': status === STATUS_NAMES.NEEDS_REVIEW,
                     'mr-2': i < pullRequest.statuses.length - 1,
+                    'opacity-65': isDarkModeEnabled(),
                   },
                 )}
               >
@@ -185,7 +194,3 @@ export default function PullRequest({ pullRequest }) {
     </tr>
   );
 }
-
-PullRequest.propTypes = {
-  pullRequest: PullRequestType,
-};

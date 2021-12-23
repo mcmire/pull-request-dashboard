@@ -1,5 +1,4 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import Head from 'next/head';
 import { Toaster } from 'react-hot-toast';
 import { NowProvider } from '../hooks/now';
@@ -7,15 +6,20 @@ import { SessionProvider } from '../hooks/session';
 
 import '../styles/globals.css';
 
+type Props = {
+  Component: React.JSXElementConstructor<Record<string, unknown>>;
+  pageProps: Record<string, unknown>;
+};
+
 /**
- * The default Next.js page component.
+ * The root Next.js component.
  *
- * @param {object} props - The props to this component.
- * @param {*} props.Component - The page component.
- * @param {object} props.pageProps - The props to render the component with.
- * @returns {JSX.Element} The JSX used to render this component.
+ * @param props - The props to this component.
+ * @param props.Component - The page component.
+ * @param props.pageProps - The props to render the component with.
+ * @returns The JSX used to render this component.
  */
-function App({ Component, pageProps }) {
+export default function App({ Component, pageProps }: Props): JSX.Element {
   return (
     <SessionProvider>
       <NowProvider>
@@ -36,10 +40,3 @@ function App({ Component, pageProps }) {
     </SessionProvider>
   );
 }
-
-App.propTypes = {
-  Component: PropTypes.elementType.isRequired,
-  pageProps: PropTypes.object.isRequired,
-};
-
-export default App;

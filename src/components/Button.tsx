@@ -1,21 +1,29 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import PropTypes from 'prop-types';
 import classnames from 'classnames';
+
+type Props = {
+  inactiveLabel: React.ReactNode;
+  activeLabel: React.ReactNode;
+  onClick: () => void | Promise<void> | Promise<null | { isActive: boolean }>;
+  className?: string;
+  disabled?: boolean;
+  isActive?: boolean;
+};
 
 /**
  * An abstract button component.
  *
- * @param {object} props - The props to this component.
- * @param {JSX.Element} props.inactiveLabel - The content of the button as long
+ * @param props - The props to this component.
+ * @param props.inactiveLabel - The content of the button as long
  * as the button has not been clicked.
- * @param {JSX.Element} props.activeLabel - The content of the button after the
+ * @param props.activeLabel - The content of the button after the
  * button is clicked and while onClick() is taking place.
- * @param {Function} props.onClick - The function to call when the button is
+ * @param props.onClick - The function to call when the button is
  * clicked.
- * @param {string} [props.className] - The CSS classes to apply to the button.
- * @param {boolean} [props.disabled] - Whether the button should be disabled.
- * @param {boolean} [props.isActive] - Whether the button is in an active state.
- * @returns {JSX.Element} The JSX used to render this component.
+ * @param props.className - The CSS classes to apply to the button.
+ * @param props.disabled - Whether the button should be disabled.
+ * @param props.isActive - Whether the button is in an active state.
+ * @returns The JSX to render this component.
  */
 export default function Button({
   inactiveLabel,
@@ -24,7 +32,7 @@ export default function Button({
   className = '',
   disabled: givenIsDisabled = undefined,
   isActive: givenIsActive = undefined,
-}) {
+}: Props): JSX.Element {
   const isStillMounted = useRef(true);
   const [isActive, setIsActive] = useState(false);
   const isDisabled = givenIsDisabled !== undefined ? givenIsDisabled : isActive;
@@ -73,9 +81,9 @@ export default function Button({
         'drop-shadow-sm',
         className,
         {
-          'bg-gray-100 text-gray-400 hover:bg-gray-100 cursor-not-allowed':
+          'bg-neutral-100 dark:bg-neutral-700 text-neutral-400 dark:text-neutral-800 cursor-not-allowed':
             isDisabled,
-          'bg-blue-500 hover:bg-blue-600 active:drop-shadow-none active:shadow-inner-darker active:bg-blue-700':
+          'bg-blue-500 dark:bg-blue-500 hover:bg-blue-600 dark:hover:bg-blue-400 active:drop-shadow-none active:shadow-inner-darker active:bg-blue-700 dark:active:bg-blue-300':
             !isDisabled,
         },
       )}
@@ -86,12 +94,3 @@ export default function Button({
     </button>
   );
 }
-
-Button.propTypes = {
-  inactiveLabel: PropTypes.node.isRequired,
-  activeLabel: PropTypes.node.isRequired,
-  onClick: PropTypes.func.isRequired,
-  className: PropTypes.string,
-  disabled: PropTypes.bool,
-  isActive: PropTypes.bool,
-};

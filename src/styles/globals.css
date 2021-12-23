@@ -8,7 +8,7 @@ body {
 }
 
 body {
-  @apply p-4;
+  @apply p-4 dark:bg-neutral-800 text-neutral-800;
 }
 
 #root {

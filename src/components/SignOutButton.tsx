@@ -1,13 +1,13 @@
 import React from 'react';
-import { useSession } from '../hooks/session';
+import { useSession, SIGNED_OUT_SESSION } from '../hooks/session';
 import Button from './Button';
 
 /**
  * The button the user can use to sign out.
  *
- * @returns {JSX.Element} The JSX used to render this component.
+ * @returns The JSX used to render this component.
  */
-export default function SignOutButton() {
+export default function SignOutButton(): JSX.Element {
   const { setSession } = useSession();
   const onClick = async () => {
     // Signing out takes no time at all, so fake a delay
@@ -15,7 +15,7 @@ export default function SignOutButton() {
       setTimeout(resolve, 1000);
     });
 
-    setSession(null);
+    setSession(SIGNED_OUT_SESSION);
   };
 
   return (

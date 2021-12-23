@@ -1,19 +1,29 @@
 import { intersection, uniq } from 'lodash';
 import {
   AUTHOR_CATEGORY_NAMES,
-  COLUMN_NAMES,
-  FILTER_NAMES,
+  SORTABLE_COLUMN_NAMES,
+  FILTERABLE_COLUMN_NAMES,
   STATUS_NAMES,
 } from './constants';
+import {
+  GitHubPullRequestAuthor,
+  GitHubPullRequest,
+  PullRequest,
+  PullRequestAuthor,
+  FilterSelectableValues,
+  SignedInUser,
+} from './types2';
 
 /**
  * Builds an author object.
  *
- * @param {GitHubActor} pullRequestAuthor - An Actor object obtained from the
- * GitHub GraphQL API.
- * @returns {Author} An author object.
+ * @param pullRequestAuthor - An Actor object obtained from the GitHub GraphQL
+ * API.
+ * @returns An author object.
  */
-function buildAuthor(pullRequestAuthor) {
+function buildAuthor(
+  pullRequestAuthor: GitHubPullRequestAuthor,
+): PullRequestAuthor {
   if (pullRequestAuthor != null) {
     const { login } = pullRequestAuthor;
     const { avatarUrl } = pullRequestAuthor;
@@ -34,12 +44,14 @@ function buildAuthor(pullRequestAuthor) {
 /**
  * Builds the `authorCategories` for an Author.
  *
- * @param {GitHubActor} author - An Author object obtained from {@link
- * buildAuthor}.
- * @param {Session} currentUser - Information about the current user.
- * @returns {PullRequestAuthorCategory[]} A set of categories for the author.
+ * @param author - An Author object obtained from {@link buildAuthor}.
+ * @param currentUser - Information about the current user.
+ * @returns A set of categories for the author.
  */
-function determineAuthorCategories(author, currentUser) {
+function determineAuthorCategories(
+  author: PullRequestAuthor,
+  currentUser: SignedInUser,
+): FilterSelectableValues['authorCategories'] {
   const authorCategories = [];
   const authorInSameOrgAsCurrentUser =
     intersection(author.orgLogins, currentUser.orgLogins).length > 0;
@@ -54,17 +66,19 @@ function determineAuthorCategories(author, currentUser) {
     authorCategories.push(AUTHOR_CATEGORY_NAMES.CONTRIBUTORS);
   }
 
-  return authorCategories;
+  return authorCategories as FilterSelectableValues['authorCategories'];
 }
 
 /**
  * Determines the `statuses` for a PullRequest.
  *
- * @param {GitHubPullRequestNode} pullRequestNode - A PullRequestNode object
- * obtained from the GitHub GraphQL API.
- * @returns {PullRequestStatus[]} A set of statuses for the pull request.
+ * @param pullRequestNode - A PullRequest object obtained from the GitHub
+ * GraphQL API.
+ * @returns A set of statuses for the pull request.
  */
-function determineStatuses(pullRequestNode) {
+function determineStatuses(
+  pullRequestNode: GitHubPullRequest,
+): FilterSelectableValues['statuses'] {
   const statuses = [];
   const labelNames = pullRequestNode.labels.nodes.map((label) => label.name);
 
@@ -98,17 +112,17 @@ function determineStatuses(pullRequestNode) {
     statuses.push(STATUS_NAMES.HAS_MISSING_TESTS);
   }
 
-  return statuses;
+  return statuses as FilterSelectableValues['statuses'];
 }
 
 /**
  * Determines the `priorityLevel` for a PullRequest.
  *
- * @param {GitHubPullRequestNode} pullRequestNode - A PullRequestNode object
- * obtained from the GitHub GraphQL API.
- * @returns {number} The priority level from 0 to 5.
+ * @param pullRequestNode - A PullRequest object obtained from the GitHub
+ * GraphQL API.
+ * @returns The priority level from 0 to 5.
  */
-function determinePriorityLevel(pullRequestNode) {
+function determinePriorityLevel(pullRequestNode: GitHubPullRequest): number {
   const issueReferenceLabelNames = uniq(
     pullRequestNode.closingIssuesReferences.nodes.flatMap((issueNode) =>
       issueNode.labels.nodes.map((label) => label.name),
@@ -132,12 +146,15 @@ function determinePriorityLevel(pullRequestNode) {
  * Builds an object that can be passed to {@link PullRequestRow} to render a
  * pull request.
  *
- * @param {GitHubPullRequestNode} pullRequestNode - A PullRequestNode object obtained
- * from the GitHub GraphQL API.
- * @param {Session} currentUser - Information about the current user.
- * @returns {PullRequest} The pull request.
+ * @param pullRequestNode - A PullRequestNode object obtained from the GitHub
+ * GraphQL API.
+ * @param currentUser - Information about the current user.
+ * @returns The built pull request.
  */
-export default function buildPullRequest(pullRequestNode, currentUser) {
+export default function buildPullRequest(
+  pullRequestNode: GitHubPullRequest,
+  currentUser: SignedInUser,
+): PullRequest {
   const {
     number,
     title,
@@ -154,14 +171,15 @@ export default function buildPullRequest(pullRequestNode, currentUser) {
 
   return {
     author,
-    [FILTER_NAMES.AUTHOR_CATEGORIES]: authorCategories,
+    [FILTERABLE_COLUMN_NAMES.AUTHOR_CATEGORIES]: authorCategories,
     number,
     title,
-    [COLUMN_NAMES.CREATED_AT]: createdAt,
-    [COLUMN_NAMES.PRIORITY_LEVEL]: priorityLevel,
-    [COLUMN_NAMES.STATUSES]: statuses,
+    [SORTABLE_COLUMN_NAMES.CREATED_AT]: createdAt,
+    [SORTABLE_COLUMN_NAMES.PRIORITY_LEVEL]: priorityLevel,
+    [SORTABLE_COLUMN_NAMES.STATUSES]: statuses,
     url,
     isDraft,
+    isCreatedByMetaMaskian: author.orgLogins.includes('MetaMask'),
     labelNames,
   };
 }

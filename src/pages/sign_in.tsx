@@ -8,15 +8,15 @@ import { useSession } from '../hooks/session';
 /**
  * The page the user can use to sign in.
  *
- * @returns {JSX.Element} The JSX used to render this component.
+ * @returns The JSX used to render this component.
  */
-export default function SignInPage() {
+export default function SignInPage(): JSX.Element | null {
   const router = useRouter();
   const { session, setSession } = useSession();
-  const [apiToken, setApiToken] = useState('');
-  const [error, setError] = useState(null);
+  const [apiToken, setApiToken] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
 
-  const onInputChange = (event) => {
+  const onInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newApiToken = event.currentTarget.value;
     setApiToken(newApiToken);
   };
@@ -26,6 +26,7 @@ export default function SignInPage() {
     try {
       const { viewer } = await fetchViewer({ apiToken });
       const newSession = {
+        type: 'signedIn' as const,
         apiToken,
         user: {
           login: viewer.login,
@@ -50,12 +51,12 @@ export default function SignInPage() {
   };
 
   useEffect(() => {
-    if (session !== null) {
+    if (session.type === 'signedIn') {
       router.replace(ROUTES.PULL_REQUESTS);
     }
   }, [session, router]);
 
-  return session == null ? (
+  return session.type === 'signedOut' ? (
     <>
       <div className="mb-4">
         <label className="block mb-1">
@@ -71,7 +72,7 @@ export default function SignInPage() {
           :
         </label>
         <input
-          className="block mb-1 rounded-lg py-1.5 px-3.5 border border-gray-200 w-[40em]"
+          className="block mb-1 rounded-lg py-1.5 px-3.5 border border-neutral-200 w-[40em]"
           type="text"
           onChange={onInputChange}
         />
@@ -90,5 +91,3 @@ export default function SignInPage() {
     </>
   ) : null;
 }
-
-SignInPage.propTypes = {};

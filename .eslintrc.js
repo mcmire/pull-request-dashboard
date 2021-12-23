@@ -22,36 +22,33 @@ module.exports = {
       },
     },
     {
-      files: ['src/**/*.js', 'src/**/*.jsx'],
-      extends: ['plugin:react/recommended', 'plugin:react-hooks/recommended'],
+      files: [
+        'next-env.d.ts',
+        'src/**/*.js',
+        'src/**/*.jsx',
+        'src/**/*.ts',
+        'src/**/*.tsx',
+        'src/types.d.ts',
+      ],
+      extends: [
+        'plugin:react/recommended',
+        'plugin:react-hooks/recommended',
+        '@metamask/eslint-config-typescript',
+      ],
       env: {
         browser: true,
         node: true,
-        es2017: true,
       },
       globals: {
         event: 'off',
         name: 'off',
         status: 'off',
       },
-      parser: '@babel/eslint-parser',
-      parserOptions: {
-        sourceType: 'module',
-        ecmaFeatures: {
-          experimentalObjectRestSpread: true,
-          impliedStrict: true,
-          modules: true,
-          blockBindings: true,
-          arrowFunctions: true,
-          objectLiteralShorthandMethods: true,
-          objectLiteralShorthandProperties: true,
-          templateStrings: true,
-          classes: true,
-          jsx: true,
-        },
-      },
       rules: {
         'import/no-unassigned-import': 'off',
+        'import/unambiguous': 'off',
+        // Allow ///-comment type declarations
+        'spaced-comment': 'off',
         'react/no-unescaped-entities': 'off',
         'react/no-unused-prop-types': 'error',
         'react/no-unused-state': 'error',
@@ -63,6 +60,14 @@ module.exports = {
         'react/no-deprecated': 'error',
         'react/default-props-match-prop-types': 'error',
         'react/jsx-no-duplicate-props': 'error',
+        // Doesn't matter whether we use types or interfaces, they're both valid
+        '@typescript-eslint/consistent-type-definitions': 'off',
+      },
+      // Needed? Who knows
+      settings: {
+        'import/resolver': {
+          typescript: {},
+        },
       },
     },
   ],

@@ -1,24 +1,34 @@
 import { isEqual } from 'lodash';
 import { fetchPullRequests } from './github';
 import buildPullRequest from './buildPullRequest';
+import { PullRequest, SignedInSession, SignedInUser } from './types2';
 
 const FAKE_REQUEST = false;
+const CACHE_KEY = 'fetchPullRequestsRequest';
 const SHOULD_CACHE = true;
 const SHOULD_RESET_CACHE = false;
-const CACHE_KEY = 'fetchPullRequestsRequest';
+const SHOULD_EXPIRE_CACHE = true;
+const EXPIRE_CACHE_BEFORE = new Date(1641159515259);
 const CACHE_MAX_AGE = 60 * 60 * 1000; // 1 hour
-const RESET_CACHE_AFTER = new Date(1640122057775);
-let lastTimeFetched;
+
+let lastTimeFetched: Date | undefined;
+
+type RequestParams = {
+  apiToken: string;
+};
+type CachedRequest = {
+  params: RequestParams;
+  time: Date;
+  pullRequests: PullRequest[];
+};
 
 /**
  * Retrieves pull requests that has been previously persisted to localStorage.
  *
- * @param {object} params - The data which specifies the request.
- * @param {string} params.apiToken - The token used to authenticate requests to
- * the GitHub API.
- * @returns {PullRequest[]} The cached pull requests (before extra filtering).
+ * @param params - The request params.
+ * @returns The cached pull requests (before extra filtering).
  */
-function getPullRequestsFromCache(params) {
+function getPullRequestsFromCache(params: RequestParams) {
   if (SHOULD_RESET_CACHE) {
     localStorage.removeItem(CACHE_KEY);
   }
@@ -26,13 +36,14 @@ function getPullRequestsFromCache(params) {
   const serializedCachedRequest = localStorage.getItem(CACHE_KEY);
 
   if (serializedCachedRequest != null) {
-    const cachedRequest = JSON.parse(serializedCachedRequest);
+    const cachedRequest = JSON.parse(serializedCachedRequest) as CachedRequest;
     const time = new Date(cachedRequest.time);
 
     if (
-      time >= RESET_CACHE_AFTER &&
+      SHOULD_EXPIRE_CACHE &&
+      time >= EXPIRE_CACHE_BEFORE &&
       isEqual(cachedRequest.params, params) &&
-      new Date().getTime() - time <= CACHE_MAX_AGE
+      new Date().getTime() - time.getTime() <= CACHE_MAX_AGE
     ) {
       return cachedRequest.pullRequests.map((pullRequest) => {
         return {
@@ -50,17 +61,23 @@ function getPullRequestsFromCache(params) {
  * Retrieves pull requests from the API and builds PullRequest objects from
  * them.
  *
- * @param {object} params - The data which specifies the request.
- * @param {string} params.apiToken - The token used to authenticate requests to
+ * @param params - The data which specifies the request.
+ * @param params.apiToken - The token used to authenticate requests to
  * the GitHub API.
- * @param {Session} currentUser - Information about the current user.
- * @returns {Promise<PullRequest[]>} A set of pull requests (before extra
+ * @param currentUser - Information about the current user.
+ * @returns A set of pull requests (before extra
  * filtering).
  */
-async function fetchPullRequestsFromApi(params, currentUser) {
-  const now = new Date().getTime();
+async function fetchPullRequestsFromApi(
+  params: RequestParams,
+  currentUser: SignedInUser,
+) {
+  const now = new Date();
 
-  if (now - lastTimeFetched <= 500) {
+  if (
+    lastTimeFetched !== undefined &&
+    now.getTime() - lastTimeFetched.getTime() <= 100
+  ) {
     throw new Error(
       'It looks like a duplicate request was made to the GitHub API. ' +
         "Make sure you're not in an infinite loop, as this will cause rate limiting.",
@@ -68,6 +85,14 @@ async function fetchPullRequestsFromApi(params, currentUser) {
   }
 
   lastTimeFetched = now;
+
+  // TODO: Handle timeout errors such as:
+  //
+  //   Couldn't fetch pull requests: HttpError: Unknown error:
+  //   {"data":null,"errors":[{"message":"Something went wrong while executing
+  //   your query. This may be the result of a timeout, or it could be a GitHub
+  //   bug. Please include `EC66:6A6B:3195096:9673C6A:61D21A5E` when reporting
+  //   this issue."}]}
 
   const githubPullRequestNodes = [];
   let response = await fetchPullRequests(params);
@@ -81,7 +106,7 @@ async function fetchPullRequestsFromApi(params, currentUser) {
     githubPullRequestNodes.push(...response.repository.pullRequests.nodes);
   }
 
-  // console.log('githubPullRequestNodes', githubPullRequestNodes);
+  //console.log('githubPullRequestNodes', githubPullRequestNodes);
 
   const pullRequests = githubPullRequestNodes.map((pullRequestNode) =>
     buildPullRequest(pullRequestNode, currentUser),
@@ -105,10 +130,12 @@ async function fetchPullRequestsFromApi(params, currentUser) {
  * Fetches pull requests from GitHub using the specified filters and then maps
  * them to a form that can be passed to the PullRequestList.
  *
- * @param {Session} currentSession - Information about the current user.
- * @returns {Promise<PullRequest>} The pull requests.
+ * @param currentSession - Information about the current user.
+ * @returns The pull requests.
  */
-export default async function getPullRequests(currentSession) {
+export default async function getPullRequests(
+  currentSession: SignedInSession,
+): Promise<PullRequest[]> {
   const { apiToken, user } = currentSession;
 
   if (FAKE_REQUEST) {
@@ -121,7 +148,7 @@ export default async function getPullRequests(currentSession) {
     (SHOULD_CACHE && getPullRequestsFromCache({ apiToken })) ||
     (await fetchPullRequestsFromApi({ apiToken }, user));
 
-  // console.log('pullRequests', pullRequests);
+  //console.log('pullRequests', pullRequests);
 
   return pullRequests;
 }

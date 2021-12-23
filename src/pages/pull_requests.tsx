@@ -2,10 +2,10 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import { isEmpty, reduce } from 'lodash';
 import {
-  DEFAULT_SELECTED_FILTERS,
+  SORTABLE_COLUMN_NAMES,
+  DEFAULT_FILTERS,
   DEFAULT_SORTS,
   FILTER_NAME_VALUES,
-  SORT_FLAG_VALUES,
   ROUTES,
 } from '../constants';
 import FilterBar from '../components/FilterBar';
@@ -15,56 +15,73 @@ import { useSession } from '../hooks/session';
 import getPullRequests from '../getPullRequests';
 import filterPullRequests from '../filterPullRequests';
 import sortPullRequests from '../sortPullRequests';
-import areFiltersEqual from '../areFiltersEqual';
+import areFilterModifiersEqual from '../areFilterModifiersEqual';
 import areSortsEqual from '../areSortsEqual';
+import {
+  FilterModifiers,
+  PullRequest,
+  PullRequestsRequestStatus,
+  FilterSelectableValues,
+  SerializedFilterModifiers,
+  SerializedSortModifiers,
+  SerializedViewModifiers,
+  SortModifiers,
+  SortableColumnName,
+  ViewModifiers,
+} from '../types2';
 
-let lastTimeRouterPushCalled;
+type Query = {
+  [param: string]: string[] | string | undefined;
+};
+
+let lastTimeRouterPushCalled: Date | null;
 
 /**
  * Extracts filters and sorts from the given query object, leaving the remaining
  * query parameters.
  *
- * @param {object} query - The query object as obtained via `router.query`.
- * @returns {object} An object, where `filters` are the filter-related
- * parameters, `sorts` are the sort-related parameters, and `rest` is everything
- * else.
+ * @param query - The query object as obtained via `router.query`.
+ * @returns An object, where `filters` are the filter-related parameters,
+ * `sorts` are the sort-related parameters, and `rest` is everything else.
  */
-function extractViewModifiersFromQuery(query) {
+function extractViewModifiersFromQuery(
+  query: Query,
+): ViewModifiers & { rest: Query } {
   const rest = { ...query };
-  let filters = {};
-  let sorts;
+  const filters: FilterModifiers = DEFAULT_FILTERS;
+  const sorts: SortModifiers = DEFAULT_SORTS;
 
   FILTER_NAME_VALUES.forEach((filterName) => {
     const value = rest[`filter_${filterName}`];
     if (value !== undefined) {
-      filters[filterName] = typeof value === 'string' ? [value] : value;
+      if (filterName === 'authorCategories') {
+        filters[filterName] = (
+          typeof value === 'string' ? [value] : value
+        ) as FilterSelectableValues['authorCategories'];
+      } else if (filterName === 'statuses') {
+        filters[filterName] = (
+          typeof value === 'string' ? [value] : value
+        ) as FilterSelectableValues['statuses'];
+      }
       delete rest[`filter_${filterName}`];
-    } else {
-      filters[filterName] = [];
     }
   });
 
-  if (Object.values(filters).flat().length === 0) {
-    filters = undefined;
+  const column = rest.sort_column;
+  if (typeof column === 'string' && column in SORTABLE_COLUMN_NAMES) {
+    sorts.column = column as SortableColumnName;
   }
+  delete rest.sort_column;
 
-  SORT_FLAG_VALUES.forEach((sortFlag) => {
-    const value = rest[`sort_${sortFlag}`];
-    if (value !== undefined) {
-      let normalizedValue = value;
-      if (value === 'true') {
-        normalizedValue = true;
-      } else if (value === 'false') {
-        normalizedValue = false;
-      }
-
-      if (sorts === undefined) {
-        sorts = {};
-      }
-      sorts[sortFlag] = normalizedValue;
-      delete rest[`sort_${sortFlag}`];
+  const reverse = rest.sort_reverse;
+  if (reverse !== undefined) {
+    if (reverse === 'true') {
+      sorts.reverse = true;
+    } else if (reverse === 'false') {
+      sorts.reverse = false;
     }
-  });
+  }
+  delete rest.sort_reverse;
 
   return { filters, sorts, rest };
 }
@@ -74,28 +91,36 @@ function extractViewModifiersFromQuery(query) {
  * modifier parameters. Filter parameters are prefixed with `filter_` and sort
  * parameters are prefixed with `sort_`.
  *
- * @param {object} viewModifiers - The set of view modifiers (an object
- * containing `filters` and/or `sorts` keys).
- * @param {object} [viewModifiers.filters] - The new filters that are being set.
- * @param {object} [viewModifiers.sorts] - The new sorts that are being set.
- * @param {object} query - The existing query parameters.
- * @param {object} query.filters - The existing filters.
- * @param {object} query.sorts - The existing sorts.
- * @param {object} query.rest - The remaining parameters that aren't filter- or
+ * @param viewModifiers - The set of view modifiers (an object containing
+ * `filters` and/or `sorts` keys).
+ * @param [viewModifiers.filters] - The new filters that are being set
+ * (optional).
+ * @param [viewModifiers.sorts] - The new sorts that are being set (optional).
+ * @param query - The existing query parameters.
+ * @param query.filters - The existing filters.
+ * @param query.sorts - The existing sorts.
+ * @param query.rest - The remaining parameters that aren't filter- or
  * sort-related.
- * @returns {object} A combined set of query parameters with view modifier
+ * @returns A combined set of query parameters with view modifier
  * information.
  */
 function buildQueryWithViewModifiers(
-  { filters: newFilters = {}, sorts: newSorts = {} },
-  { filters: oldFilters, sorts: oldSorts, rest },
-) {
+  {
+    filters: newFilters = DEFAULT_FILTERS,
+    sorts: newSorts = DEFAULT_SORTS,
+  }: Partial<ViewModifiers>,
+  {
+    filters: oldFilters,
+    sorts: oldSorts,
+    rest,
+  }: ViewModifiers & { rest: Query },
+): SerializedViewModifiers {
   const serializedFilters = reduce(
     { ...oldFilters, ...newFilters },
     (obj, value, key) => {
       return { ...obj, [`filter_${key}`]: value };
     },
-    {},
+    {} as SerializedFilterModifiers,
   );
 
   const serializedSorts = reduce(
@@ -103,7 +128,7 @@ function buildQueryWithViewModifiers(
     (obj, value, key) => {
       return { ...obj, [`sort_${key}`]: value };
     },
-    {},
+    {} as SerializedSortModifiers,
   );
 
   return {
@@ -116,25 +141,29 @@ function buildQueryWithViewModifiers(
 /**
  * The page which appears when the user is signed in.
  *
- * @returns {JSX.Element} The JSX used to render this component.
+ * @returns The JSX used to render this component.
  */
 export default function PullRequestsPage() {
   const router = useRouter();
   const { session } = useSession();
-  const [savedViewModifiers, setSavedViewModifiers] = useState(null);
-  const [pullRequestsRequestStatus, setPullRequestsRequestStatus] = useState({
-    type: 'pending',
-    data: {
-      unfilteredPullRequests: [],
-      filteredPullRequests: [],
-    },
-    errorMessage: null,
+  const [savedViewModifiers, setSavedViewModifiers] = useState<ViewModifiers>({
+    filters: DEFAULT_FILTERS,
+    sorts: DEFAULT_SORTS,
   });
+  const [pullRequestsRequestStatus, setPullRequestsRequestStatus] =
+    useState<PullRequestsRequestStatus>({
+      type: 'pending',
+      data: {
+        unfilteredPullRequests: [],
+        filteredPullRequests: [],
+      },
+      errorMessage: null,
+    });
   const [hasLoadedPullRequestsOnce, setHasLoadedPullRequestsOnce] =
-    useState(false);
+    useState<boolean>(false);
 
   const saveViewModifiers = useMemo(() => {
-    return async (newViewModifiers) => {
+    return async (newViewModifiers: Partial<ViewModifiers>) => {
       const existingViewModifiersAndRest = extractViewModifiersFromQuery(
         router.query,
       );
@@ -149,14 +178,17 @@ export default function PullRequestsPage() {
       }));
 
       if (
-        !areFiltersEqual(
-          existingViewModifiersAndRest.filters,
-          newViewModifiers.filters,
-        ) ||
-        !areSortsEqual(
-          existingViewModifiersAndRest.sorts,
-          newViewModifiers.sorts,
-        )
+        (existingViewModifiersAndRest.filters !== undefined &&
+          newViewModifiers.filters !== undefined &&
+          !areFilterModifiersEqual(
+            existingViewModifiersAndRest.filters,
+            newViewModifiers.filters,
+          )) ||
+        (existingViewModifiersAndRest.sorts !== undefined &&
+          !areSortsEqual(
+            existingViewModifiersAndRest.sorts,
+            newViewModifiers.sorts,
+          ))
       ) {
         if (
           lastTimeRouterPushCalled != null &&
@@ -175,30 +207,32 @@ export default function PullRequestsPage() {
           );
         }
         lastTimeRouterPushCalled = new Date();
-        await router.push({ query: newQuery }, null, { shallow: true });
+        await router.push({ query: newQuery }, undefined, { shallow: true });
       }
     };
   }, [router]);
 
-  const saveSelectedFilters = (filters) => saveViewModifiers({ filters });
+  const saveFilterSelections = (filters: FilterModifiers) =>
+    saveViewModifiers({ filters });
 
-  const saveSorts = (sorts) => saveViewModifiers({ sorts });
+  const saveSortModifiers = (sorts: SortModifiers) =>
+    saveViewModifiers({ sorts });
 
   useEffect(() => {
-    if (session === null) {
+    if (session.type === 'signedOut') {
       router.replace(ROUTES.SIGN_IN);
     }
   }, [session, router]);
 
   useEffect(() => {
-    if (session != null) {
+    if (session.type === 'signedIn') {
       setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
         ...previousPullRequestsRequestStatus,
         type: 'loading',
       }));
 
       getPullRequests(session)
-        .then((unfilteredPullRequests) => {
+        .then((unfilteredPullRequests: PullRequest[]) => {
           setHasLoadedPullRequestsOnce(true);
           setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
             ...previousPullRequestsRequestStatus,
@@ -254,30 +288,25 @@ export default function PullRequestsPage() {
     // run
     if (isEmpty(url.searchParams.toString()) || !isEmpty(router.query)) {
       const { filters, sorts } = extractViewModifiersFromQuery(router.query);
-      const newFilters =
-        filters === undefined ? DEFAULT_SELECTED_FILTERS : filters;
-      const newSorts = sorts === undefined ? DEFAULT_SORTS : sorts;
-      saveViewModifiers({ filters: newFilters, sorts: newSorts });
+      saveViewModifiers({ filters, sorts });
     }
   }, [router, saveViewModifiers]);
 
-  return session == null || savedViewModifiers == null ? null : (
+  return session == null ? null : (
     <>
       <div className="flex justify-between mb-4">
         <FilterBar
-          savedSelectedFilters={savedViewModifiers.filters}
-          saveSelectedFilters={saveSelectedFilters}
+          savedFilterModifiers={savedViewModifiers.filters}
+          saveFilterSelections={saveFilterSelections}
         />
         <SignOutButton />
       </div>
       <PullRequestsTable
         pullRequestsRequestStatus={pullRequestsRequestStatus}
         hasLoadedPullRequestsOnce={hasLoadedPullRequestsOnce}
-        savedSorts={savedViewModifiers.sorts}
-        saveSorts={saveSorts}
+        savedSortModifiers={savedViewModifiers.sorts}
+        saveSortModifiers={saveSortModifiers}
       />
     </>
   );
 }
-
-PullRequestsPage.propTypes = {};
