@@ -1,3 +1,5 @@
+// TODO: Use enums for this stuff
+//
 export const FILTERABLE_COLUMN_NAMES = {
   AUTHOR_CATEGORIES: 'authorCategories',
   STATUSES: 'statuses',
