@@ -1,5 +1,5 @@
 import { isEqual } from 'lodash';
-import { fetchPullRequests } from './github';
+import { fetchPullRequestsWithAutomaticRetry } from './github';
 import buildPullRequest from './buildPullRequest';
 import { PullRequest, SignedInSession, SignedInUser } from './types';
 
@@ -65,8 +65,7 @@ function getPullRequestsFromCache(params: RequestParams) {
  * @param params.apiToken - The token used to authenticate requests to
  * the GitHub API.
  * @param currentUser - Information about the current user.
- * @returns A set of pull requests (before extra
- * filtering).
+ * @returns A set of pull requests (before extra filtering).
  */
 async function fetchPullRequestsFromApi(
   params: RequestParams,
@@ -95,11 +94,11 @@ async function fetchPullRequestsFromApi(
   //   this issue."}]}
 
   const githubPullRequestNodes = [];
-  let response = await fetchPullRequests(params);
+  let response = await fetchPullRequestsWithAutomaticRetry(params);
   githubPullRequestNodes.push(...response.repository.pullRequests.nodes);
 
   while (response.repository.pullRequests.pageInfo.hasNextPage) {
-    response = await fetchPullRequests({
+    response = await fetchPullRequestsWithAutomaticRetry({
       ...params,
       after: response.repository.pullRequests.pageInfo.endCursor,
     });

@@ -142,3 +142,38 @@ export async function fetchPullRequests({
     headers: { Authorization: `Token ${apiToken}` },
   });
 }
+
+/**
+ * Fetches pull requests from the `MetaMask/metamask-extension` repository using
+ * the specified filters. As sometimes the GitHub API can time out, this
+ * function automatically retries the request for up to 3 times.
+ *
+ * @param params - The request params.
+ * @param params.apiToken - The token used to authenticate requests to
+ * the GitHub API.
+ * @param [params.after] - Fetch pull requests after this cursor.
+ * @returns A set of pull requests (before extra filtering).
+ */
+export async function fetchPullRequestsWithAutomaticRetry(params: {
+  apiToken: string;
+  after?: string;
+}): Promise<GitHubPullRequestsResponse> {
+  let numberOfRetries = 0;
+
+  /* eslint-disable no-constant-condition */
+  while (true) {
+    try {
+      return await fetchPullRequests(params);
+    } catch (error: any) {
+      if (
+        error.message != null &&
+        /Unexpected end of JSON input/u.test(error.message) &&
+        numberOfRetries < 3
+      ) {
+        numberOfRetries += 1;
+      } else {
+        throw error;
+      }
+    }
+  }
+}
