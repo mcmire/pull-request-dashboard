@@ -167,7 +167,10 @@ export async function fetchPullRequestsWithAutomaticRetry(params: {
     } catch (error: any) {
       if (
         error.message != null &&
-        /Unexpected end of JSON input/u.test(error.message) &&
+        (/Unexpected end of JSON input/u.test(error.message) ||
+          /Something went wrong while executing your query\. This may be the result of a timeout/u.test(
+            error.message,
+          )) &&
         numberOfRetries < 3
       ) {
         numberOfRetries += 1;
