@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import { isEmpty, reduce } from 'lodash';
 import {
-  SORTABLE_COLUMN_NAMES,
+  SORTABLE_COLUMN_NAME_VALUES,
   DEFAULT_FILTERS,
   DEFAULT_SORTS,
   FILTER_NAME_VALUES,
@@ -68,7 +68,10 @@ function extractViewModifiersFromQuery(
   });
 
   const column = rest.sort_column;
-  if (typeof column === 'string' && column in SORTABLE_COLUMN_NAMES) {
+  if (
+    typeof column === 'string' &&
+    SORTABLE_COLUMN_NAME_VALUES.includes(column as SortableColumnName)
+  ) {
     sorts.column = column as SortableColumnName;
   }
   delete rest.sort_column;
