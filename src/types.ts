@@ -54,9 +54,15 @@ export type GitHubViewerResponse = {
     };
   };
 };
-export type GithubPullRequestsResponse = {
+export type GitHubPullRequestsResponse = {
   repository: {
-    pullRequests: GitHubPullRequest[];
+    pullRequests: {
+      pageInfo: {
+        hasNextPage: boolean;
+        endCursor: string;
+      };
+      nodes: GitHubPullRequest[];
+    };
   };
 };
 export type GitHubPullRequestAuthor = {
