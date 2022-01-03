@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Session } from '../types2';
+import { Session } from '../types';
 
 type ContextValue = {
   session: Session;

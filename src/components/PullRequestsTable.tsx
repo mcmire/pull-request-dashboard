@@ -6,7 +6,7 @@ import {
   PullRequestsRequestStatus,
   SortModifiers,
   SortableColumnName,
-} from '../types2';
+} from '../types';
 import PullRequestRow from './PullRequestRow';
 
 type Props = {

@@ -12,7 +12,7 @@ import {
   PullRequestAuthor,
   FilterSelectableValues,
   SignedInUser,
-} from './types2';
+} from './types';
 
 /**
  * Builds an author object.

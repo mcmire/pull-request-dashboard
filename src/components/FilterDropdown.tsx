@@ -6,7 +6,7 @@ import {
   FilterSelections,
   FilterableColumnName,
   Filters,
-} from '../types2';
+} from '../types';
 import { isDescendant } from '../util';
 import FilterDropdownMenu from './FilterDropdownMenu';
 

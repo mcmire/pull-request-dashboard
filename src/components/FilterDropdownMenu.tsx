@@ -7,7 +7,7 @@ import {
   FilterableColumnName,
   Filters,
   FilterSelectableValueTogglings,
-} from '../types2';
+} from '../types';
 import { FILTERABLE_COLUMN_NAMES } from '../constants';
 
 type Props<N extends FilterableColumnName> = {

@@ -1,4 +1,4 @@
-import { FilterableColumn } from './types2';
+import { FilterableColumn } from './types';
 import Filter from './Filter';
 
 export default class FilterSelection<

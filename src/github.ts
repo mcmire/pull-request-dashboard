@@ -1,5 +1,5 @@
 import { graphql } from '@octokit/graphql';
-import { GitHubViewerResponse, GitHubPullRequestsResponse } from './types2';
+import { GitHubViewerResponse, GitHubPullRequestsResponse } from './types';
 
 const MAX_NUMBER_OF_PULL_REQUESTS = 100;
 

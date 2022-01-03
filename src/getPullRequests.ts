@@ -1,7 +1,7 @@
 import { isEqual } from 'lodash';
 import { fetchPullRequests } from './github';
 import buildPullRequest from './buildPullRequest';
-import { PullRequest, SignedInSession, SignedInUser } from './types2';
+import { PullRequest, SignedInSession, SignedInUser } from './types';
 
 const FAKE_REQUEST = false;
 const CACHE_KEY = 'fetchPullRequestsRequest';

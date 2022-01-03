@@ -14,7 +14,7 @@ import { useNow } from '../hooks/now';
 import MetamaskIcon from '../images/metamask-fox.svg';
 import DotIcon from '../images/icons/octicons/dot-16.svg';
 import DotFillIcon from '../images/icons/octicons/dot-fill-16.svg';
-import { PullRequest } from '../types2';
+import { PullRequest } from '../types';
 import { isDarkModeEnabled } from '../util';
 
 import 'tippy.js/dist/tippy.css';

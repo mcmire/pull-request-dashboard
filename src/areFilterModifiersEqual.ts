@@ -1,6 +1,6 @@
 import { isEqual } from 'lodash';
 import { buildObject } from './util';
-import { FilterModifiers } from './types2';
+import { FilterModifiers } from './types';
 
 /**
  * Given a set of filter modifiers with selected values, sorts all values so

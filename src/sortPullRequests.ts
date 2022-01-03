@@ -1,6 +1,6 @@
 import { partition, sortBy } from 'lodash';
 import { SORTABLE_COLUMN_NAMES } from './constants';
-import { PullRequest, SortModifiers } from './types2';
+import { PullRequest, SortModifiers } from './types';
 
 /**
  * Sorts the given pull requests.

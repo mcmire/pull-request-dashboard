@@ -1,5 +1,5 @@
 import { intersection, isEmpty } from 'lodash';
-import { FilterModifiers, FilterableColumnName, PullRequest } from './types2';
+import { FilterModifiers, FilterableColumnName, PullRequest } from './types';
 
 /**
  * Filters the list of pull requests by the specified filters.

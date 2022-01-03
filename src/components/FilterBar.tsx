@@ -12,7 +12,7 @@ import {
   FilterSelections,
   FilterableColumnName,
   Filters,
-} from '../types2';
+} from '../types';
 import FilterDropdown from './FilterDropdown';
 import Button from './Button';
 

@@ -28,7 +28,7 @@ import {
   SortModifiers,
   SortableColumnName,
   ViewModifiers,
-} from '../types2';
+} from '../types';
 
 type Query = {
   [param: string]: string[] | string | undefined;
