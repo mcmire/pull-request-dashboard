@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Session } from '../types';
 
 type ContextValue = {
-  session: Session;
+  session: Session | null;
   setSession: (session: Session) => void;
 };
 
@@ -28,7 +28,7 @@ const SessionContext = createContext<ContextValue>({
  * @returns The JSX that renders this component.
  */
 export function SessionProvider({ children }: Props): JSX.Element {
-  const [session, setSession] = useState<Session>(SIGNED_OUT_SESSION);
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
     const savedSession = localStorage.getItem('session');
@@ -42,10 +42,12 @@ export function SessionProvider({ children }: Props): JSX.Element {
   }, []);
 
   useEffect(() => {
-    if (session.type === 'signedIn') {
-      localStorage.setItem('session', JSON.stringify(session));
-    } else {
-      localStorage.removeItem('session');
+    if (session != null) {
+      if (session.type === 'signedIn') {
+        localStorage.setItem('session', JSON.stringify(session));
+      } else {
+        localStorage.removeItem('session');
+      }
     }
   }, [session]);
 

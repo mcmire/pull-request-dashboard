@@ -101,7 +101,8 @@ export default function PullRequestsTable({
   const renderTbody = () => {
     if (
       pullRequestsRequestStatus.type === 'loaded' &&
-      hasLoadedPullRequestsOnce
+      hasLoadedPullRequestsOnce &&
+      pullRequestsRequestStatus.data.filteredPullRequests != null
     ) {
       if (pullRequestsRequestStatus.data.filteredPullRequests.length > 0) {
         return pullRequestsRequestStatus.data.filteredPullRequests.map(

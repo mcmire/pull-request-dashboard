@@ -155,7 +155,7 @@ export default function PullRequestsPage() {
       type: 'pending',
       data: {
         unfilteredPullRequests: [],
-        filteredPullRequests: [],
+        filteredPullRequests: null,
       },
       errorMessage: null,
     });
@@ -219,13 +219,13 @@ export default function PullRequestsPage() {
     saveViewModifiers({ sorts });
 
   useEffect(() => {
-    if (session.type === 'signedOut') {
+    if (session?.type === 'signedOut') {
       router.replace(ROUTES.SIGN_IN);
     }
   }, [session, router]);
 
   useEffect(() => {
-    if (session.type === 'signedIn') {
+    if (session?.type === 'signedIn') {
       setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
         ...previousPullRequestsRequestStatus,
         type: 'loading',

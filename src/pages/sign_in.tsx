@@ -51,12 +51,12 @@ export default function SignInPage(): JSX.Element | null {
   };
 
   useEffect(() => {
-    if (session.type === 'signedIn') {
+    if (session?.type === 'signedIn') {
       router.replace(ROUTES.PULL_REQUESTS);
     }
   }, [session, router]);
 
-  return session.type === 'signedOut' ? (
+  return session?.type === 'signedOut' ? (
     <>
       <div className="mb-4">
         <label className="block mb-1">

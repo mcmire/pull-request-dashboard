@@ -151,7 +151,7 @@ export type PullRequestsRequestStatus = {
   type: 'pending' | 'loading' | 'loaded' | 'error';
   data: {
     unfilteredPullRequests: PullRequest[];
-    filteredPullRequests: PullRequest[];
+    filteredPullRequests: PullRequest[] | null;
   };
   errorMessage: string | null;
 };
