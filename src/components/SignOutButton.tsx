@@ -1,5 +1,5 @@
 import React from 'react';
-import { useSession, SIGNED_OUT_SESSION } from '../hooks/session';
+import { signOut } from 'next-auth/react';
 import Button from './Button';
 
 /**
@@ -8,14 +8,13 @@ import Button from './Button';
  * @returns The JSX used to render this component.
  */
 export default function SignOutButton(): JSX.Element {
-  const { setSession } = useSession();
   const onClick = async () => {
     // Signing out takes no time at all, so fake a delay
     await new Promise((resolve) => {
-      setTimeout(resolve, 1000);
+      setTimeout(resolve, 500);
     });
 
-    setSession(SIGNED_OUT_SESSION);
+    signOut();
   };
 
   return (
@@ -27,5 +26,3 @@ export default function SignOutButton(): JSX.Element {
     />
   );
 }
-
-SignOutButton.propTypes = {};

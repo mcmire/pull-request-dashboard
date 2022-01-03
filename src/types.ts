@@ -168,7 +168,7 @@ export type SignedInUser = {
 };
 export type SignedInSession = {
   type: 'signedIn';
-  apiToken: string;
+  accessToken: string;
   user: SignedInUser;
 };
 type SignedOutSession = {

@@ -14,7 +14,7 @@ const CACHE_MAX_AGE = 60 * 60 * 1000; // 1 hour
 let lastTimeFetched: Date | undefined;
 
 type RequestParams = {
-  apiToken: string;
+  accessToken: string;
 };
 type CachedRequest = {
   params: RequestParams;
@@ -62,7 +62,7 @@ function getPullRequestsFromCache(params: RequestParams) {
  * them.
  *
  * @param params - The data which specifies the request.
- * @param params.apiToken - The token used to authenticate requests to
+ * @param params.accessToken - The token used to authenticate requests to
  * the GitHub API.
  * @param currentUser - Information about the current user.
  * @returns A set of pull requests (before extra filtering).
@@ -135,7 +135,7 @@ async function fetchPullRequestsFromApi(
 export default async function getPullRequests(
   currentSession: SignedInSession,
 ): Promise<PullRequest[]> {
-  const { apiToken, user } = currentSession;
+  const { accessToken, user } = currentSession;
 
   if (FAKE_REQUEST) {
     return new Promise((resolve) => {
@@ -144,8 +144,8 @@ export default async function getPullRequests(
   }
 
   const pullRequests =
-    (SHOULD_CACHE && getPullRequestsFromCache({ apiToken })) ||
-    (await fetchPullRequestsFromApi({ apiToken }, user));
+    (SHOULD_CACHE && getPullRequestsFromCache({ accessToken })) ||
+    (await fetchPullRequestsFromApi({ accessToken }, user));
 
   //console.log('pullRequests', pullRequests);
 

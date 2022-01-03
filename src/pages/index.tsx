@@ -13,12 +13,10 @@ export default function IndexPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (session != null) {
-      if (session.type === 'signedIn') {
-        router.replace(ROUTES.PULL_REQUESTS);
-      } else {
-        router.replace(ROUTES.SIGN_IN);
-      }
+    if (session.type === 'signedIn') {
+      router.replace(ROUTES.PULL_REQUESTS);
+    } else {
+      router.replace(ROUTES.SIGN_IN);
     }
   }, [session, router]);
 

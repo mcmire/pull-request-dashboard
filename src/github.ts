@@ -7,14 +7,14 @@ const MAX_NUMBER_OF_PULL_REQUESTS = 100;
  * Fetches information about the current viewer (user).
  *
  * @param args - The arguments to this function.
- * @param args.apiToken - The token used to authenticate requests to
+ * @param args.accessToken - The token used to authenticate requests to
  * the GitHub API.
  * @returns The response.
  */
 export function fetchViewer({
-  apiToken,
+  accessToken,
 }: {
-  apiToken: string;
+  accessToken: string;
 }): Promise<GitHubViewerResponse> {
   const query = `
     query {
@@ -30,7 +30,7 @@ export function fetchViewer({
   `;
   return graphql<GitHubViewerResponse>(query, {
     headers: {
-      Authorization: `Token ${apiToken}`,
+      Authorization: `Bearer ${accessToken}`,
     },
   });
 }
@@ -40,16 +40,16 @@ export function fetchViewer({
  * the specified filters.
  *
  * @param args - The arguments to this function.
- * @param args.apiToken - The token used to authenticate requests to
+ * @param args.accessToken - The token used to authenticate requests to
  * the GitHub API.
  * @param [args.after] - Fetch pull requests after this cursor.
  * @returns The response.
  */
 export async function fetchPullRequests({
-  apiToken,
+  accessToken,
   after,
 }: {
-  apiToken: string;
+  accessToken: string;
   after?: string;
 }): Promise<GitHubPullRequestsResponse> {
   const query = `
@@ -139,7 +139,7 @@ export async function fetchPullRequests({
     }
   `;
   return graphql<GitHubPullRequestsResponse>(query, {
-    headers: { Authorization: `Token ${apiToken}` },
+    headers: { Authorization: `Bearer ${accessToken}` },
   });
 }
 
@@ -149,13 +149,13 @@ export async function fetchPullRequests({
  * function automatically retries the request for up to 3 times.
  *
  * @param params - The request params.
- * @param params.apiToken - The token used to authenticate requests to
+ * @param params.accessToken - The token used to authenticate requests to
  * the GitHub API.
  * @param [params.after] - Fetch pull requests after this cursor.
  * @returns A set of pull requests (before extra filtering).
  */
 export async function fetchPullRequestsWithAutomaticRetry(params: {
-  apiToken: string;
+  accessToken: string;
   after?: string;
 }): Promise<GitHubPullRequestsResponse> {
   let numberOfRetries = 0;
