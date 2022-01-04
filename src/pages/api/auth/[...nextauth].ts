@@ -13,12 +13,15 @@ export default NextAuth({
   ],
   callbacks: {
     async jwt({ token, account }) {
-      // Persist the OAuth access token to the token right after sign-in.
-      return { ...token, accessToken: account?.access_token };
+      if (account != null) {
+        // Persist the OAuth access token to the token right after sign-in.
+        return { ...token, accessToken: account?.access_token };
+      }
+      return token;
     },
     async session({ session, token }) {
       // Send the access_token to the client by putting it in the session.
-      return { ...session, accessToken: token?.accessToken };
+      return { ...session, accessToken: token.accessToken };
     },
   },
 });
