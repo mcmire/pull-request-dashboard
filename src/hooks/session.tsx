@@ -7,7 +7,7 @@ import { fetchViewer } from '../github';
 import { Session } from '../types';
 
 type ContextValue = {
-  session: Session;
+  session: Session | null;
   setSession: (session: Session) => void;
 };
 
@@ -35,7 +35,7 @@ const SessionContext = createContext<ContextValue>({
  */
 function SessionStore({ children }: Props): JSX.Element {
   const nextAuth = useNextAuthSession();
-  const [session, setSession] = useState<Session>(SIGNED_OUT_SESSION);
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
     const savedSession = localStorage.getItem(STORAGE_KEY);
@@ -48,7 +48,7 @@ function SessionStore({ children }: Props): JSX.Element {
   }, []);
 
   useEffect(() => {
-    let authenticationSucceeded = false;
+    let authenticationSucceeded = null;
 
     if (nextAuth.status === 'authenticated') {
       const accessToken = nextAuth.data.accessToken as string;
@@ -70,13 +70,18 @@ function SessionStore({ children }: Props): JSX.Element {
           authenticationSucceeded = true;
         })
         .catch((error) => {
-          if (!/Bad credentials/u.test(error.message)) {
+          if (/Bad credentials/u.test(error.message)) {
+            authenticationSucceeded = false;
+          } else {
             throw error;
           }
         });
     }
 
-    if (nextAuth.status === 'unauthenticated' || !authenticationSucceeded) {
+    if (
+      nextAuth.status === 'unauthenticated' ||
+      authenticationSucceeded === false
+    ) {
       setSession(SIGNED_OUT_SESSION);
       localStorage.removeItem(STORAGE_KEY);
     }

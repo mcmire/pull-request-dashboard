@@ -229,13 +229,16 @@ export default function PullRequestsPage() {
 
   useEffect(() => {
     if (session?.type === 'signedIn') {
-      setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
-        ...previousPullRequestsRequestStatus,
-        type: 'loading',
-      }));
+      const timer = setTimeout(() => {
+        setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
+          ...previousPullRequestsRequestStatus,
+          type: 'loading',
+        }));
+      }, 1000);
 
       getPullRequests(session)
         .then((unfilteredPullRequests: PullRequest[]) => {
+          clearTimeout(timer);
           setHasLoadedPullRequestsOnce(true);
           setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
             ...previousPullRequestsRequestStatus,

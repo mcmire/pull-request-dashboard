@@ -126,14 +126,17 @@ export default function PullRequestsTable({
           </td>
         </tr>
       );
+    } else if (pullRequestsRequestStatus.type === 'loading') {
+      return (
+        <tr>
+          <td colSpan={7} className="pt-4 pb-4 text-sm text-neutral-500 italic">
+            Loading, please wait...
+          </td>
+        </tr>
+      );
     }
-    return (
-      <tr>
-        <td colSpan={7} className="pt-4 pb-4 text-sm text-neutral-500 italic">
-          Loading, please wait...
-        </td>
-      </tr>
-    );
+
+    return null;
   };
 
   return (

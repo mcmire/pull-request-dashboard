@@ -49,16 +49,19 @@ function determineColorForCreatedAt(now: Date, createdAt: Date): string {
  * @param props.className - CSS classes.
  * @param props.align - How to vertically-align the contents of the cell.
  * @param props.children - The children.
+ * @param props.isFirst - Whether this cell is the first in its row.
  * @returns The JSX that renders this component.
  */
 function Cell({
   className = '',
   align = 'top',
+  isFirst = false,
   children,
   ...rest
 }: {
   className?: string;
   align?: 'top' | 'bottom' | 'middle';
+  isFirst?: boolean;
   children?: React.ReactNode;
   [prop: string]: any;
 }): JSX.Element {
@@ -67,6 +70,7 @@ function Cell({
       className={classnames(
         `pr-2 py-2 border-b dark:border-neutral-600 group-hover:bg-neutral-100 dark:group-hover:bg-neutral-700 align-${align}`,
         className,
+        { 'pl-2': isFirst },
       )}
       {...rest}
     >
@@ -115,26 +119,24 @@ export default function PullRequestRow({
 
   return (
     <tr className="group">
-      <Cell>
+      <Cell className="w-[2.25em]" isFirst align="middle">
         {pullRequest.isCreatedByMetaMaskian ? (
-          <MetamaskIcon className="h-[1.2em]" />
+          <MetamaskIcon className="w-full" />
         ) : null}
       </Cell>
-      <Cell align="top">
-        <div className="inline-block pt-[0.28em]">
+      <Cell className="w-[2em]" align="middle">
+        <Tippy
+          content={
+            <div className="text-[0.6rem]">{pullRequest.author.login}</div>
+          }
+        >
           {/* eslint-disable @next/next/no-img-element */}
-          <Tippy
-            content={
-              <div className="text-[0.6rem]">{pullRequest.author.login}</div>
-            }
-          >
-            <img
-              src={pullRequest.author.avatarUrl}
-              className="rounded-full w-[2em] border border-neutral-100 mr-[-0.5em]"
-              alt={pullRequest.author.login}
-            />
-          </Tippy>
-        </div>
+          <img
+            src={pullRequest.author.avatarUrl}
+            className="rounded-full w-full border border-neutral-300 mr-[-0.5em]"
+            alt={pullRequest.author.login}
+          />
+        </Tippy>
       </Cell>
       <Cell className="text-neutral-500">
         <a
