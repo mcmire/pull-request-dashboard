@@ -9,10 +9,10 @@ set -euo pipefail
 # need a custom setup.
 
 provision-project() {
-  # This function gets called automatically below.
-  # Feel free to remove these comments.
-  # If your project needs custom setup, then place that here.
-  true
+  if ! vercel --help &>/dev/null; then
+    banner 'Installing Vercel'
+    npm install -g vercel
+  fi
 }
 
 ### DON'T MODIFY ANYTHING BELOW THIS LINE! #####################################
