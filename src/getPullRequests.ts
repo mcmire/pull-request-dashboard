@@ -8,7 +8,7 @@ const CACHE_KEY = 'fetchPullRequestsRequest';
 const SHOULD_CACHE = true;
 const SHOULD_RESET_CACHE = false;
 const SHOULD_EXPIRE_CACHE = true;
-const EXPIRE_CACHE_BEFORE = new Date(1641159515259);
+const CACHE_EXPIRES_BEFORE = new Date(1641159515259);
 const CACHE_MAX_AGE = 60 * 60 * 1000; // 1 hour
 
 let lastTimeFetched: Date | undefined;
@@ -26,9 +26,15 @@ type CachedRequest = {
  * Retrieves pull requests that has been previously persisted to localStorage.
  *
  * @param params - The request params.
+ * @param cacheExpiresBefore - Specifies how an existing cache should be
+ * handled. If it was created before this date, then it will be discarded and a
+ * new request will be performed.
  * @returns The cached pull requests (before extra filtering).
  */
-function getPullRequestsFromCache(params: RequestParams) {
+function getPullRequestsFromCache(
+  params: RequestParams,
+  cacheExpiresBefore: Date | null,
+) {
   if (SHOULD_RESET_CACHE) {
     localStorage.removeItem(CACHE_KEY);
   }
@@ -41,7 +47,8 @@ function getPullRequestsFromCache(params: RequestParams) {
 
     if (
       SHOULD_EXPIRE_CACHE &&
-      time >= EXPIRE_CACHE_BEFORE &&
+      time >= CACHE_EXPIRES_BEFORE &&
+      (cacheExpiresBefore == null || time >= cacheExpiresBefore) &&
       isEqual(cachedRequest.params, params) &&
       new Date().getTime() - time.getTime() <= CACHE_MAX_AGE
     ) {
@@ -105,8 +112,6 @@ async function fetchPullRequestsFromApi(
     githubPullRequestNodes.push(...response.repository.pullRequests.nodes);
   }
 
-  //console.log('githubPullRequestNodes', githubPullRequestNodes);
-
   const pullRequests = githubPullRequestNodes.map((pullRequestNode) =>
     buildPullRequest(pullRequestNode, currentUser),
   );
@@ -130,10 +135,14 @@ async function fetchPullRequestsFromApi(
  * them to a form that can be passed to the PullRequestList.
  *
  * @param currentSession - Information about the current user.
+ * @param cacheExpiresBefore - Specifies how an existing cache should be
+ * handled. If it was created before this date, then it will be discarded and a
+ * new request will be performed.
  * @returns The pull requests.
  */
 export default async function getPullRequests(
   currentSession: SignedInSession,
+  cacheExpiresBefore: Date | null,
 ): Promise<PullRequest[]> {
   const { accessToken, user } = currentSession;
 
@@ -144,10 +153,9 @@ export default async function getPullRequests(
   }
 
   const pullRequests =
-    (SHOULD_CACHE && getPullRequestsFromCache({ accessToken })) ||
+    (SHOULD_CACHE &&
+      getPullRequestsFromCache({ accessToken }, cacheExpiresBefore)) ||
     (await fetchPullRequestsFromApi({ accessToken }, user));
-
-  //console.log('pullRequests', pullRequests);
 
   return pullRequests;
 }

@@ -51,13 +51,17 @@ function determineColorForCreatedAt(now: Date, createdAt: Date): string {
 function determineColorForStatus(status: string) {
   switch (status) {
     case STATUS_NAMES.IS_BLOCKED:
-      return 'border-gray-200 text-gray-500 bg-gray-100';
+      return 'border-gray-400 text-gray-600 bg-gray-300';
     case STATUS_NAMES.IS_READY_TO_MERGE:
-      return 'border-green-600 text-gray-100 bg-green-500';
+      return 'border-green-500 text-gray-100 bg-green-500';
     case STATUS_NAMES.NEEDS_REVIEW:
-      return 'border-blue-200 text-blue-500 bg-blue-50';
+      return 'border-blue-300 text-blue-500 bg-blue-50';
+    case STATUS_NAMES.NEEDS_DECISION:
+      return 'border-violet-300 text-violet-500 bg-violet-50';
+    case STATUS_NAMES.HAS_MERGE_CONFLICTS:
+      return 'border-orange-300 text-orange-500 bg-orange-50';
     default:
-      return 'border-red-200 text-red-500 bg-red-50';
+      return 'border-red-300 text-red-500 bg-red-50';
   }
 }
 

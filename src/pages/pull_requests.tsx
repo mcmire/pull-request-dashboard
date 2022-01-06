@@ -11,6 +11,7 @@ import {
 import FilterBar from '../components/FilterBar';
 import PullRequestsTable from '../components/PullRequestsTable';
 import SignOutButton from '../components/SignOutButton';
+import RefreshButton from '../components/RefreshButton';
 import { useSession } from '../hooks/session';
 import getPullRequests from '../getPullRequests';
 import filterPullRequests from '../filterPullRequests';
@@ -164,6 +165,9 @@ export default function PullRequestsPage() {
     });
   const [hasLoadedPullRequestsOnce, setHasLoadedPullRequestsOnce] =
     useState<boolean>(false);
+  const [cacheExpiresBefore, setCacheExpiresBefore] = useState<Date | null>(
+    null,
+  );
 
   const saveViewModifiers = useMemo(() => {
     return async (newViewModifiers: Partial<ViewModifiers>) => {
@@ -221,6 +225,11 @@ export default function PullRequestsPage() {
   const saveSortModifiers = (sorts: SortModifiers) =>
     saveViewModifiers({ sorts });
 
+  const refreshPullRequests = () => {
+    const newCacheExpiresBefore = new Date();
+    setCacheExpiresBefore(newCacheExpiresBefore);
+  };
+
   useEffect(() => {
     if (session?.type === 'signedOut') {
       router.replace(ROUTES.SIGN_IN);
@@ -229,16 +238,37 @@ export default function PullRequestsPage() {
 
   useEffect(() => {
     if (session?.type === 'signedIn') {
-      const timer = setTimeout(() => {
+      let timer: NodeJS.Timeout | null;
+
+      if (cacheExpiresBefore == null) {
+        timer = setTimeout(() => {
+          setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
+            ...previousPullRequestsRequestStatus,
+            type: 'loading',
+            data: {
+              unfilteredPullRequests: [],
+              filteredPullRequests: null,
+            },
+            errorMessage: null,
+          }));
+        }, 1000);
+      } else {
         setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
           ...previousPullRequestsRequestStatus,
           type: 'loading',
+          data: {
+            unfilteredPullRequests: [],
+            filteredPullRequests: null,
+          },
+          errorMessage: null,
         }));
-      }, 1000);
+      }
 
-      getPullRequests(session)
+      getPullRequests(session, cacheExpiresBefore)
         .then((unfilteredPullRequests: PullRequest[]) => {
-          clearTimeout(timer);
+          if (timer != null) {
+            clearTimeout(timer);
+          }
           setHasLoadedPullRequestsOnce(true);
           setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
             ...previousPullRequestsRequestStatus,
@@ -258,7 +288,7 @@ export default function PullRequestsPage() {
           console.error(error);
         });
     }
-  }, [session]);
+  }, [session, cacheExpiresBefore]);
 
   // The useCallback here is necessary to prevent recursive state updates
   useEffect(() => {
@@ -301,10 +331,16 @@ export default function PullRequestsPage() {
   return session == null ? null : (
     <>
       <div className="flex justify-between mb-4">
-        <FilterBar
-          savedFilterModifiers={savedViewModifiers.filters}
-          saveFilterSelections={saveFilterSelections}
-        />
+        <div className="flex items-center gap-4">
+          <FilterBar
+            savedFilterModifiers={savedViewModifiers.filters}
+            saveFilterSelections={saveFilterSelections}
+          />
+          <RefreshButton
+            refreshPullRequests={refreshPullRequests}
+            arePullRequestsLoading={pullRequestsRequestStatus.type !== 'loaded'}
+          />
+        </div>
         <SignOutButton />
       </div>
       <PullRequestsTable
