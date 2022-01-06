@@ -40,7 +40,7 @@ export const FILTERS_BY_NAME = {
     },
     optionLabelWhenAllOptionsSelected: 'All PRs',
     optionLabelWhenNoOptionsSelected: 'No PRs',
-    className: 'w-[175px]',
+    className: '[width:max(175px,100%)]',
     isEachOptionExclusive: false,
   },
   [FILTERABLE_COLUMN_NAMES.STATUSES]: {
@@ -67,7 +67,7 @@ export const FILTERS_BY_NAME = {
     },
     optionLabelWhenAllOptionsSelected: 'Any status',
     optionLabelWhenNoOptionsSelected: 'No status',
-    className: 'w-[250px]',
+    className: '[width:max(250px,100%)]',
     isEachOptionExclusive: false,
   },
 } as const;
