@@ -43,6 +43,25 @@ function determineColorForCreatedAt(now: Date, createdAt: Date): string {
 }
 
 /**
+ * Determines the classname that is used to decorate a pull request status.
+ *
+ * @param status - The status.
+ * @returns The classname.
+ */
+function determineColorForStatus(status: string) {
+  switch (status) {
+    case STATUS_NAMES.IS_BLOCKED:
+      return 'border-gray-200 text-gray-500 bg-gray-100';
+    case STATUS_NAMES.IS_READY_TO_MERGE:
+      return 'border-green-600 text-gray-100 bg-green-500';
+    case STATUS_NAMES.NEEDS_REVIEW:
+      return 'border-blue-200 text-blue-500 bg-blue-50';
+    default:
+      return 'border-red-200 text-red-500 bg-red-50';
+  }
+}
+
+/**
  * Renders a cell.
  *
  * @param props - The props for this component.
@@ -174,14 +193,9 @@ export default function PullRequestRow({
               <span
                 key={i}
                 className={classnames(
-                  'rounded-full text-white py-1.5 px-2.5 text-xs whitespace-nowrap',
+                  'rounded-full py-1.5 px-2.5 text-xs whitespace-nowrap border',
+                  determineColorForStatus(status),
                   {
-                    'bg-black': status === STATUS_NAMES.IS_BLOCKED,
-                    'bg-red-500':
-                      status !== STATUS_NAMES.IS_READY_TO_MERGE &&
-                      status !== STATUS_NAMES.NEEDS_REVIEW,
-                    'bg-green-500': status === STATUS_NAMES.IS_READY_TO_MERGE,
-                    'bg-blue-500': status === STATUS_NAMES.NEEDS_REVIEW,
                     'mr-2': i < pullRequest.statuses.length - 1,
                     'opacity-65': isDarkModeEnabled(),
                   },

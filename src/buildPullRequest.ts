@@ -112,6 +112,10 @@ function determineStatuses(
     statuses.push(STATUS_NAMES.HAS_MISSING_TESTS);
   }
 
+  if (labelNames.includes('needs-decision')) {
+    statuses.push(STATUS_NAMES.NEEDS_DECISION);
+  }
+
   return statuses as FilterSelectableValues['statuses'];
 }
 
