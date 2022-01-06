@@ -62,7 +62,7 @@ function buildLabelForSelection<N extends FilterableColumnName>(
   }
 
   if (labels.length > 2) {
-    return `${labels.slice(2).join(', ')}, ...`;
+    return `${labels.slice(0, 2).join(', ')}, ...`;
   }
   return labels.join(', ');
 }
