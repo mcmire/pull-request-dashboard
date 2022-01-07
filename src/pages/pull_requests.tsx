@@ -314,8 +314,6 @@ export default function PullRequestsPage() {
   }, [pullRequestsRequestStatus.type, savedViewModifiers]);
 
   useEffect(() => {
-    console.log('router changed?');
-
     const url = new URL(
       router.asPath,
       `${location.protocol}//${location.hostname})`,
