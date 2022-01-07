@@ -153,14 +153,30 @@ export type SerializedSortModifiers = {
 export type SerializedViewModifiers = SerializedFilterModifiers &
   SerializedSortModifiers;
 
-export type PullRequestsRequestStatus = {
-  type: 'pending' | 'loading' | 'loaded' | 'error';
-  data: {
-    unfilteredPullRequests: PullRequest[];
-    filteredPullRequests: PullRequest[] | null;
-  };
-  errorMessage: string | null;
-};
+export type PullRequestsRequestStatus =
+  | {
+      type: 'pending' | 'loading';
+      data: null;
+      errorMessage: null;
+    }
+  | {
+      type: 'loaded';
+      data: {
+        unfilteredPullRequests: PullRequest[];
+        filteredPullRequests: PullRequest[] | null;
+        requestTime: Date;
+      };
+      errorMessage: string | null;
+    }
+  | {
+      type: 'error';
+      data: {
+        unfilteredPullRequests: PullRequest[];
+        filteredPullRequests: PullRequest[] | null;
+        requestTime: Date;
+      } | null;
+      errorMessage: string | null;
+    };
 
 export type SignedInUser = {
   login: string;

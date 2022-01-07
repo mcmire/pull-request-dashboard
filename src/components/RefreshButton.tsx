@@ -1,5 +1,6 @@
 import React from 'react';
 import classnames from 'classnames';
+import Tippy from '@tippyjs/react';
 import SyncIcon from '../images/icons/octicons/sync-16.svg';
 
 type Props = {
@@ -22,15 +23,24 @@ export default function RefreshButton({
   arePullRequestsLoading,
 }: Props) {
   return (
-    <a
-      href="#"
-      onClick={refreshPullRequests}
-      className={classnames({
-        'text-gray-300 cursor-not-allowed animate-spin': arePullRequestsLoading,
-        'text-gray-500 hover:text-blue-500': !arePullRequestsLoading,
-      })}
+    <Tippy
+      content={
+        <div className="text-xs">
+          List not up to date? Pull a fresh copy from GitHub.
+        </div>
+      }
     >
-      <SyncIcon className="h-[1em]" />
-    </a>
+      <a
+        href="#"
+        onClick={refreshPullRequests}
+        className={classnames({
+          'text-gray-300 cursor-not-allowed animate-spin':
+            arePullRequestsLoading,
+          'text-gray-500 hover:text-blue-500': !arePullRequestsLoading,
+        })}
+      >
+        <SyncIcon className="h-[1em]" />
+      </a>
+    </Tippy>
   );
 }

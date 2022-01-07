@@ -4,7 +4,7 @@ import buildPullRequest from './buildPullRequest';
 import { PullRequest, SignedInSession, SignedInUser } from './types';
 
 const FAKE_REQUEST = false;
-const CACHE_KEY = 'fetchPullRequestsRequest';
+const CACHE_KEY = 'fetchPullRequestsRequest/v2';
 const SHOULD_CACHE = true;
 const SHOULD_RESET_CACHE = false;
 const SHOULD_EXPIRE_CACHE = true;
@@ -16,10 +16,10 @@ let lastTimeFetched: Date | undefined;
 type RequestParams = {
   accessToken: string;
 };
-type CachedRequest = {
-  params: RequestParams;
-  time: Date;
+export type PullRequestsCapture = {
+  requestParams: RequestParams;
   pullRequests: PullRequest[];
+  requestTime: Date;
 };
 
 /**
@@ -34,30 +34,36 @@ type CachedRequest = {
 function getPullRequestsFromCache(
   params: RequestParams,
   cacheExpiresBefore: Date | null,
-) {
+): PullRequestsCapture | null {
   if (SHOULD_RESET_CACHE) {
     localStorage.removeItem(CACHE_KEY);
   }
 
-  const serializedCachedRequest = localStorage.getItem(CACHE_KEY);
+  const serializedPullRequestsCapture = localStorage.getItem(CACHE_KEY);
 
-  if (serializedCachedRequest != null) {
-    const cachedRequest = JSON.parse(serializedCachedRequest) as CachedRequest;
-    const time = new Date(cachedRequest.time);
+  if (serializedPullRequestsCapture != null) {
+    const capture = JSON.parse(
+      serializedPullRequestsCapture,
+    ) as PullRequestsCapture;
+    const time = new Date(capture.requestTime);
 
     if (
       SHOULD_EXPIRE_CACHE &&
       time >= CACHE_EXPIRES_BEFORE &&
       (cacheExpiresBefore == null || time >= cacheExpiresBefore) &&
-      isEqual(cachedRequest.params, params) &&
+      isEqual(capture.requestParams, params) &&
       new Date().getTime() - time.getTime() <= CACHE_MAX_AGE
     ) {
-      return cachedRequest.pullRequests.map((pullRequest) => {
-        return {
-          ...pullRequest,
-          createdAt: new Date(pullRequest.createdAt),
-        };
-      });
+      return {
+        ...capture,
+        pullRequests: capture.pullRequests.map((pullRequest) => {
+          return {
+            ...pullRequest,
+            createdAt: new Date(pullRequest.createdAt),
+          };
+        }),
+        requestTime: time,
+      };
     }
   }
 
@@ -77,7 +83,7 @@ function getPullRequestsFromCache(
 async function fetchPullRequestsFromApi(
   params: RequestParams,
   currentUser: SignedInUser,
-) {
+): Promise<PullRequestsCapture> {
   const now = new Date();
 
   if (
@@ -91,14 +97,6 @@ async function fetchPullRequestsFromApi(
   }
 
   lastTimeFetched = now;
-
-  // TODO: Handle timeout errors such as:
-  //
-  //   Couldn't fetch pull requests: HttpError: Unknown error:
-  //   {"data":null,"errors":[{"message":"Something went wrong while executing
-  //   your query. This may be the result of a timeout, or it could be a GitHub
-  //   bug. Please include `EC66:6A6B:3195096:9673C6A:61D21A5E` when reporting
-  //   this issue."}]}
 
   const githubPullRequestNodes = [];
   let response = await fetchPullRequestsWithAutomaticRetry(params);
@@ -127,7 +125,7 @@ async function fetchPullRequestsFromApi(
     );
   }
 
-  return pullRequests;
+  return { requestParams: params, pullRequests, requestTime: now };
 }
 
 /**
@@ -143,19 +141,26 @@ async function fetchPullRequestsFromApi(
 export default async function getPullRequests(
   currentSession: SignedInSession,
   cacheExpiresBefore: Date | null,
-): Promise<PullRequest[]> {
+): Promise<PullRequestsCapture> {
   const { accessToken, user } = currentSession;
+  const params = { accessToken };
 
   if (FAKE_REQUEST) {
     return new Promise((resolve) => {
-      setTimeout(() => resolve([]), 3000);
+      setTimeout(
+        () =>
+          resolve({
+            requestParams: params,
+            pullRequests: [],
+            requestTime: new Date(),
+          }),
+        3000,
+      );
     });
   }
 
-  const pullRequests =
-    (SHOULD_CACHE &&
-      getPullRequestsFromCache({ accessToken }, cacheExpiresBefore)) ||
-    (await fetchPullRequestsFromApi({ accessToken }, user));
-
-  return pullRequests;
+  return (
+    (SHOULD_CACHE && getPullRequestsFromCache(params, cacheExpiresBefore)) ||
+    (await fetchPullRequestsFromApi(params, user))
+  );
 }

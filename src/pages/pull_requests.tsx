@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import { isEmpty, reduce } from 'lodash';
+import { format as formatDate } from 'date-fns-tz';
 import {
   SORTABLE_COLUMN_NAME_VALUES,
   DEFAULT_FILTERS,
@@ -13,14 +14,13 @@ import PullRequestsTable from '../components/PullRequestsTable';
 import SignOutButton from '../components/SignOutButton';
 import RefreshButton from '../components/RefreshButton';
 import { useSession } from '../hooks/session';
-import getPullRequests from '../getPullRequests';
+import getPullRequests, { PullRequestsCapture } from '../getPullRequests';
 import filterPullRequests from '../filterPullRequests';
 import sortPullRequests from '../sortPullRequests';
 import areFilterModifiersEqual from '../areFilterModifiersEqual';
 import areSortsEqual from '../areSortsEqual';
 import {
   FilterModifiers,
-  PullRequest,
   PullRequestsRequestStatus,
   FilterSelectableValues,
   SerializedFilterModifiers,
@@ -157,10 +157,7 @@ export default function PullRequestsPage() {
   const [pullRequestsRequestStatus, setPullRequestsRequestStatus] =
     useState<PullRequestsRequestStatus>({
       type: 'pending',
-      data: {
-        unfilteredPullRequests: [],
-        filteredPullRequests: null,
-      },
+      data: null,
       errorMessage: null,
     });
   const [hasLoadedPullRequestsOnce, setHasLoadedPullRequestsOnce] =
@@ -245,10 +242,7 @@ export default function PullRequestsPage() {
           setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
             ...previousPullRequestsRequestStatus,
             type: 'loading',
-            data: {
-              unfilteredPullRequests: [],
-              filteredPullRequests: null,
-            },
+            data: null,
             errorMessage: null,
           }));
         }, 1000);
@@ -256,16 +250,13 @@ export default function PullRequestsPage() {
         setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
           ...previousPullRequestsRequestStatus,
           type: 'loading',
-          data: {
-            unfilteredPullRequests: [],
-            filteredPullRequests: null,
-          },
+          data: null,
           errorMessage: null,
         }));
       }
 
       getPullRequests(session, cacheExpiresBefore)
-        .then((unfilteredPullRequests: PullRequest[]) => {
+        .then((capture: PullRequestsCapture) => {
           if (timer != null) {
             clearTimeout(timer);
           }
@@ -274,8 +265,9 @@ export default function PullRequestsPage() {
             ...previousPullRequestsRequestStatus,
             type: 'loaded',
             data: {
-              ...previousPullRequestsRequestStatus.data,
-              unfilteredPullRequests,
+              unfilteredPullRequests: capture.pullRequests,
+              filteredPullRequests: null,
+              requestTime: capture.requestTime,
             },
             errorMessage: null,
           }));
@@ -291,13 +283,13 @@ export default function PullRequestsPage() {
     }
   }, [session, cacheExpiresBefore]);
 
-  // The useCallback here is necessary to prevent recursive state updates
   useEffect(() => {
-    if (
-      pullRequestsRequestStatus.type === 'loaded' &&
-      savedViewModifiers != null
-    ) {
-      setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => {
+    setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => {
+      // TODO: Is this okay to put here?
+      if (
+        previousPullRequestsRequestStatus.type === 'loaded' &&
+        savedViewModifiers != null
+      ) {
         const filteredPullRequests = sortPullRequests(
           filterPullRequests(
             previousPullRequestsRequestStatus.data.unfilteredPullRequests,
@@ -313,11 +305,12 @@ export default function PullRequestsPage() {
             filteredPullRequests,
           },
         };
-      });
-    }
+      }
+      return previousPullRequestsRequestStatus;
+    });
   }, [
     pullRequestsRequestStatus.type,
-    pullRequestsRequestStatus.data.unfilteredPullRequests,
+    pullRequestsRequestStatus.data?.unfilteredPullRequests,
     savedViewModifiers,
   ]);
 
@@ -348,6 +341,15 @@ export default function PullRequestsPage() {
             refreshPullRequests={refreshPullRequests}
             arePullRequestsLoading={pullRequestsRequestStatus.type !== 'loaded'}
           />
+          {pullRequestsRequestStatus.data?.requestTime != null ? (
+            <div className="text-sm text-gray-500">
+              <b>Last updated:</b>{' '}
+              {formatDate(
+                pullRequestsRequestStatus.data.requestTime,
+                'MMM d, yyyy, h:ss aa zzz',
+              )}
+            </div>
+          ) : null}
         </div>
         <SignOutButton />
       </div>

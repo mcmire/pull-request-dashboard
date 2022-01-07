@@ -149,9 +149,7 @@ export default function PullRequestRow({
       </Cell>
       <Cell className="w-[2em]" align="middle">
         <Tippy
-          content={
-            <div className="text-[0.6rem]">{pullRequest.author.login}</div>
-          }
+          content={<div className="text-xs">{pullRequest.author.login}</div>}
         >
           {/* eslint-disable @next/next/no-img-element */}
           <img
@@ -182,12 +180,17 @@ export default function PullRequestRow({
         </a>
       </Cell>
       <Cell style={{ color }} className="w-[8em]">
-        <time
-          dateTime={pullRequest.createdAt.toISOString()}
-          title={formatDate(pullRequest.createdAt, 'MMM d, yyyy, h:ss aa zzz')}
+        <Tippy
+          content={
+            <div className="text-xs">
+              {formatDate(pullRequest.createdAt, 'MMM d, yyyy, h:ss aa zzz')}
+            </div>
+          }
         >
-          {approximateCreatedAt}
-        </time>
+          <time dateTime={pullRequest.createdAt.toISOString()}>
+            {approximateCreatedAt}
+          </time>
+        </Tippy>
       </Cell>
       <Cell className="w-[6em]">{renderPriorityLevel()}</Cell>
       <Cell>
