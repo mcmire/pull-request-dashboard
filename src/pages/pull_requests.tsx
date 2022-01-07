@@ -277,6 +277,7 @@ export default function PullRequestsPage() {
               ...previousPullRequestsRequestStatus.data,
               unfilteredPullRequests,
             },
+            errorMessage: null,
           }));
         })
         .catch((error) => {
@@ -296,22 +297,29 @@ export default function PullRequestsPage() {
       pullRequestsRequestStatus.type === 'loaded' &&
       savedViewModifiers != null
     ) {
-      setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => ({
-        ...previousPullRequestsRequestStatus,
-        type: 'loaded',
-        data: {
-          ...previousPullRequestsRequestStatus.data,
-          filteredPullRequests: sortPullRequests(
-            filterPullRequests(
-              previousPullRequestsRequestStatus.data.unfilteredPullRequests,
-              savedViewModifiers.filters,
-            ),
-            savedViewModifiers.sorts,
+      setPullRequestsRequestStatus((previousPullRequestsRequestStatus) => {
+        const filteredPullRequests = sortPullRequests(
+          filterPullRequests(
+            previousPullRequestsRequestStatus.data.unfilteredPullRequests,
+            savedViewModifiers.filters,
           ),
-        },
-      }));
+          savedViewModifiers.sorts,
+        );
+        return {
+          ...previousPullRequestsRequestStatus,
+          type: 'loaded',
+          data: {
+            ...previousPullRequestsRequestStatus.data,
+            filteredPullRequests,
+          },
+        };
+      });
     }
-  }, [pullRequestsRequestStatus.type, savedViewModifiers]);
+  }, [
+    pullRequestsRequestStatus.type,
+    pullRequestsRequestStatus.data.unfilteredPullRequests,
+    savedViewModifiers,
+  ]);
 
   useEffect(() => {
     const url = new URL(

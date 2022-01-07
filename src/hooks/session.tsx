@@ -53,29 +53,35 @@ function SessionStore({ children }: Props): JSX.Element {
     if (nextAuth.status === 'authenticated') {
       const accessToken = nextAuth.data.accessToken as string;
 
-      fetchViewer({ accessToken })
-        .then((response) => {
-          const newSession = {
-            type: 'signedIn' as const,
-            accessToken,
-            user: {
-              login: response.viewer.login,
-              orgLogins: response.viewer.organizations.nodes.map(
-                (organizationNode) => organizationNode.login,
-              ),
-            },
-          };
-          setSession(newSession);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(newSession));
-          authenticationSucceeded = true;
-        })
-        .catch((error) => {
-          if (/Bad credentials/u.test(error.message)) {
-            authenticationSucceeded = false;
-          } else {
-            throw error;
-          }
-        });
+      if (
+        session == null ||
+        !('accessToken' in session) ||
+        session.accessToken !== accessToken
+      ) {
+        fetchViewer({ accessToken })
+          .then((response) => {
+            const newSession = {
+              type: 'signedIn' as const,
+              accessToken,
+              user: {
+                login: response.viewer.login,
+                orgLogins: response.viewer.organizations.nodes.map(
+                  (organizationNode) => organizationNode.login,
+                ),
+              },
+            };
+            setSession(newSession);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(newSession));
+            authenticationSucceeded = true;
+          })
+          .catch((error) => {
+            if (/Bad credentials/u.test(error.message)) {
+              authenticationSucceeded = false;
+            } else {
+              throw error;
+            }
+          });
+      }
     }
 
     if (
@@ -85,7 +91,7 @@ function SessionStore({ children }: Props): JSX.Element {
       setSession(SIGNED_OUT_SESSION);
       localStorage.removeItem(STORAGE_KEY);
     }
-  }, [nextAuth]);
+  }, [nextAuth, session]);
 
   return (
     <SessionContext.Provider value={{ session, setSession }}>
@@ -112,6 +118,10 @@ export function SessionProvider({ children }: Props): JSX.Element {
 
 /**
  * Hook for retrieving the current session.
+ *
+ * NOTE! Any component that uses this hook will get re-rendered if the browser
+ * tab changes focus. This will affect your `useCallback`s appropriately. See
+ * this issue for more: <https://github.com/nextauthjs/next-auth/issues/454>
  *
  * @returns The current session.
  */
